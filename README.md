@@ -154,3 +154,4 @@ $ git remote -v
 - If you normally work in a Python 3 environment, then you will need to use CMD to switch to your Python 2.7 environment (Powershell or Git Shell will not work). If you are unable to do this or the tutorial is not working for you due to python-Levenshtein, post on Piazza and we will post the zip of the package to put directly into your Python installation directory.
 
 - In general, if you are having any other issues with running commands in the “Django” section of the tutorial, try opening a CMD prompt instance (separate from the Git Shell/Powershell you are using for the other sections), navigate to the project directory, and run those commands in CMD.
+
