@@ -7,10 +7,11 @@ from .form import QueryForm
 from .test import find_similar
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-# Create your views here.
+
 def index(request):
+    """Create views here."""
     output_list = ''
-    output=''
+    output = ''
     if request.GET.get('search'):
         search = request.GET.get('search')
         output_list = find_similar(search)
