@@ -60,8 +60,9 @@ def find_similar(query):
     else:
         minDist = 999999
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
+        bestMatch = query
         for key, value in business_name_to_id.iteritems():
-            dist = Levenshtein.distance(query, value[0]),
+            dist = Levenshtein.distance(query, value[0])
             if dist < minDist:
                 minDist = dist
                 bestMatch = key
