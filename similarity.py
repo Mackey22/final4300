@@ -7,6 +7,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 import time
 from collections import defaultdict
 
+def sort_dict_by_val(d):
+    """Get a list of a dict's keys ordered by descending values."""
+    return sorted(d, key=d.__getitem__, reverse=True)
 
 def gen_business_id_to_name():
     """Return Dict - maps business id to business name."""
@@ -164,7 +167,7 @@ def get_ordered_cities():
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
-    cutoff = 100 # Cut off at 100 businesses for size limitaitons, figure out later. Make sure it matches cutoff in gen_business_maps.py
+    cutoff = 300 # Cut off at 100 businesses for size limitaitons, figure out later. Make sure it matches cutoff in gen_business_maps.py
     with open('business_id_to_name.json') as data_file:
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
@@ -181,7 +184,7 @@ def gen_data_file():
     data['sim_matrix'] = sim_matrix.tolist()
     data['unique_ids'] = unique_ids
     data['cities'] = cities
-    
+
     with open('jsons/kardashian-transcripts.json', 'w') as fp:
         json.dump(data, fp)
 

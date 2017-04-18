@@ -53,20 +53,32 @@ def read_file(n):
 # responds to request
 def find_similar(query,origin,destination):
     print origin,destination
+    originCity = origin.lower()
+    destCity = destination.lower()
     query = query.lower() # business_name_to_id.json has all business names in lower case
     sim_matrix, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
     if query in business_name_to_id:
-        bid = business_name_to_id[query][0] # Change the index to find the correct restaurant based on city later.
+        bid = business_name_to_id[query][0]
+        lists = business_name_to_id[query]
+        for i in range(len(lists[0])):
+            if lists[1][i] == originCity:
+                bid = lists[0][i]
+                break
+        result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
     else:
         minDist = 999999
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
-        bestMatch = query
+        bestMatchKey = query
+        bestMatchBid = ''
         for key, value in business_name_to_id.iteritems():
-            dist = Levenshtein.distance(query, key)
-            if dist < minDist:
-                minDist = dist
-                bestMatch = key
-        bid = business_name_to_id[bestMatch][0]
-    result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
+            if originCity in value[1]:
+                idx = value[1].indexOf(originCity)
+                dist = Levenshtein.distance(query, key)
+                if dist < minDist:
+                    minDist = dist
+                    bestMatchKey = key
+                    bestMatchBid = value[0][i]
+        bid = bestMatchBid
+        result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
     return result, bestMatch
