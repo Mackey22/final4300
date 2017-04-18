@@ -2,6 +2,9 @@ from .models import Docs
 import os
 import json
 import numpy as np
+import Levenshtein
+from collections import defaultdict
+from helpers import sort_dict_by_val
 
 
 def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
@@ -51,7 +54,18 @@ def read_file(n):
 def find_similar(query):
     query = query.lower() # business_name_to_id.json has all business names in lower case
     sim_matrix, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
-    bid = business_name_to_id[query][0]
+    if query in business_name_to_id:
+        bid = business_name_to_id[query][0] # Change the index to find the correct restaurant based on city later.
+    else:
+        minDist = 999999
+        # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
+        bestMatch = query
+        for key, value in business_name_to_id.iteritems():
+            dist = Levenshtein.distance(query, key)
+            if dist < minDist:
+                minDist = dist
+                bestMatch = key
+        bid = business_name_to_id[bestMatch][0]
     result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
     return result
