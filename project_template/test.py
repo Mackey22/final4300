@@ -1,6 +1,7 @@
 from .models import Docs
 import os
 import json
+import numpy as np
 
 
 def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
@@ -27,6 +28,10 @@ def read_file(n):
     unique_ids = data['unique_ids']
     business_id_to_name = data['business_id_to_name']
     business_name_to_id = data['business_name_to_id']
+    print "length sim matrix: " + str(len(sim_matrix))
+    print "length unique_ids: " + str(len(unique_ids))
+    print unique_ids[0]
+    print business_id_to_name[unique_ids[0]]
     return sim_matrix, unique_ids, business_id_to_name, business_name_to_id
 
 
@@ -34,7 +39,7 @@ def read_file(n):
 def find_similar(query):
     query = query.lower() # business_name_to_id.json has all business names in lower case
     sim_matrix, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
-    bid = business_name_to_id
+    bid = business_name_to_id[query][0]
     result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
     return result 
