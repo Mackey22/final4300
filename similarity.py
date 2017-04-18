@@ -126,17 +126,24 @@ def find_most_similar(sim_matrix, id1, k=10):
     return most_similar_scores_and_ids
 
 
-def lookup_business_id(name):
+def lookup_business_id(name, city, state):
         with open('business_name_to_id.json') as data_file:
             business_name_to_id = json.load(data_file)
         ids = business_name_to_id[name]
-        rest_id = ids[0] # For now, just assume the user means the 1st restaurant with that given name. Later, filter based on city to find the exact one
+        rest_id = ids[0]
+        for i in range(len(ids[0])):
+            if ids[1][i] == city and ids[2][i] == state:
+                rest_id = ids[0][i]
+                break
+        #rest_id = ids[0] # For now, just assume the user means the 1st restaurant with that given name. Later, filter based on city to find the exact one
         return rest_id
 
 
-def process_query(query, sim_matrix):
+def process_query(query, city, state, sim_matrix):
     query = query.lower() # business_name_to_id.json has all business names in lower case
-    bid = lookup_business_id(query)
+    city = city.lower()
+    state = state.lower()
+    bid = lookup_business_id(query, city, state)
     most_sim = find_most_similar(sim_matrix, bid)
     return most_sim
 
@@ -148,11 +155,12 @@ def process_query(query, sim_matrix):
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
+    cutoff = 100 # Cut off at 100 businesses for size limitaitons, figure out later. Make sure it matches cutoff in gen_business_maps.py
     with open('business_id_to_name.json') as data_file:
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
         business_name_to_id = json.load(data_file)
-    unique_ids, reviews = get_reviews_and_ids(300)             # Cut off at 3000 businesses for size limitaitons, figure out later
+    unique_ids, reviews = get_reviews_and_ids(cutoff)
     n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
