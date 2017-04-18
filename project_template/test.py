@@ -58,15 +58,16 @@ def find_similar(query,origin,destination):
         bestMatch = query
         bid = business_name_to_id[query][0] # Change the index to find the correct restaurant based on city later.
     else:
-        minDist = 999999
-        # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
-        bestMatch = query
-        for key, value in business_name_to_id.iteritems():
-            dist = Levenshtein.distance(query, key)
-            if dist < minDist:
-                minDist = dist
-                bestMatch = key
-        bid = business_name_to_id[bestMatch][0]
+        return ["You're query didn't match any businesses. Try 'Wendy's' or 'bath & body works'"], "Nada"
+        # minDist = 999999
+        # # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
+        # bestMatch = query
+        # for key, value in business_name_to_id.iteritems():
+        #     dist = Levenshtein.distance(query, key)
+        #     if dist < minDist:
+        #         minDist = dist
+        #         bestMatch = key
+        # bid = business_name_to_id[bestMatch][0]
     result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
     return result, bestMatch
