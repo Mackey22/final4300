@@ -4,38 +4,69 @@ from pprint import pprint
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-cities = defaultdict(int)
-stars = defaultdict(int)
-review_count = defaultdict(int)
-categories = defaultdict(int)
-
-# Get counts of all these things
-count = 0
-with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
-    for line in data_file:
-        count += 1
-        data = (json.loads(line))
-
-        city = data['city']
-        star = data['stars']
-        num_reviews = data['review_count']
-        t = data['type']
-        cats = data['categories']
-
-        cities[city] += 1
-        stars[star] += 1
-        review_count[num_reviews] += 1
-        if cats:
-            for cat in cats:
-                categories[cat] += 1
-
-print count
-
-# Get the number of things with each of those counts
+# 144072 businesses
+# 4153150 reviews
 
 
+def count_businesses():
+    c = 0
+    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
+        for line in data_file:
+            c += 1
+    print str(c) + " businesses"
 
+
+def count_reviews():
+    c = 0
+    with open('yelp_data/yelp_academic_dataset_review.json') as data_file:
+        for line in data_file:
+            c += 1
+    print str(c) + " reviews"
+
+
+def make_business_id_map():
+    business_id_to_business = {}
+    c = 0
+    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
+        for line in data_file:
+            c += 1
+            if c % 10000 == 0:
+                print c
+            data = json.loads(line)
+            business_id_to_business[data["business_id"]] = {"data": data, "reviews": [], "review_count": 0}
+    return business_id_to_business
+
+
+def combine_reviews(business_id_map):
+    c = 0
+    with open('yelp_data/yelp_academic_dataset_review.json') as data_file:
+        for line in data_file:
+            c += 1
+            if c % 10000 == 0:
+                print c
+            data = json.loads(line)
+
+            business_id = data['business_id']
+            text = data['text']
+
+            business_id_map[business_id]["reviews"].append(text)
+            business_id_map[business_id]["review_count"] += 1
+    for v in business_id_map.values():
+        v["reviews"] = " ".join(v["reviews"])
+    pprint(business_id_map.values()[4])
+    with open('out_data/try1.json', 'w') as fp:
+        json.dump(business_id_map, fp, indent=4)
+
+
+def read_json(filepath):
+    return json.load(filepath)
+
+# count_businesses()
+# count_reviews()
+
+business_map = make_business_id_map()
+# pprint(business_map)
+combine_reviews(business_map)
 
 
 # import json
@@ -53,7 +84,7 @@ print count
 #     for line in data_file:
 #         count += 1
 #         data = (json.loads(line))
-#         if count == 5: 
+#         if count == 5:
 #             print data
 
 #         reviewer = data['user_id']
