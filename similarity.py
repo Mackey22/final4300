@@ -17,7 +17,7 @@ def gen_business_id_to_name():
             business_id_to_name[data['business_id']] = data['name']
     return business_id_to_name
 
-#business_id_to_name = gen_business_id_to_name()
+# business_id_to_name = gen_business_id_to_name()
 
 # Old version of the function parses the original Yelp dataset file
 # def get_reviews_and_ids_old():
@@ -75,7 +75,6 @@ def prune_json(n):
             new_map[k] = v
     with open('jsons/pruned.json', 'w') as fp:
         json.dump(new_map, fp, indent=4)
-
 
 
 def get_sim(vec1, vec2):

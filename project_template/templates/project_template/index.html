@@ -24,7 +24,17 @@
             <br><br>
             
             <div class="form-group">
-                <input id="input" type="text" name="search" class="form-control" placeholder="Your Input">
+                <select id="home" type="select" name="home" class="form-control">
+                {% for opt in home_cities %}
+                    <option value="{{opt}}">{{opt}}</option>
+                {% endfor %}
+                </select>
+                <input id="input" type="text" name="search" class="form-control" placeholder="Favorite Restaurant">
+                <select id="destination" type="select" name="dest" class="form-control">
+                {% for opt in dest_cities %}
+                    <option value="{{opt}}">{{opt}}</option>
+                {% endfor %}
+                </select>
             </div>
             <button type="submit" class="btn btn-info"> Go! </button>
         </form>

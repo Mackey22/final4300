@@ -3,7 +3,14 @@
     "model": "project_template.Docs",
     "pk": 1,
     "fields": {
-      "address": "jsons/kardashian-transcripts.json"
+      "address": "jsons/try1.json"
+    }
+  }
+  {
+    "model": "project_template.Docs",
+    "pk": 2,
+    "fields": {
+      "address": "yelp_data/yelp_academic_dataset_business.json"
     }
   }
 ]
