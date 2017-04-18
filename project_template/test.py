@@ -3,9 +3,6 @@ import os
 import json
 import numpy as np
 
-from collections import defaultdict
-from helpers import sort_dict_by_val
-
 
 def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
     """
@@ -23,6 +20,18 @@ def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
     return most_similar_scores_and_ids
 
 
+def get_ordered_cities():
+    data = read(1)["cities"]
+    return sorted(data[:10]), sorted(data)
+
+
+def read(n):
+    path = Docs.objects.get(id=n).address
+    file = open(path)
+    data = json.load(file)
+    return data
+
+
 def read_file(n):
     path = Docs.objects.get(id=n).address
     file = open(path)
@@ -36,19 +45,6 @@ def read_file(n):
     print unique_ids[0]
     print business_id_to_name[unique_ids[0]]
     return sim_matrix, unique_ids, business_id_to_name, business_name_to_id
-
-
-def get_ordered_cities():
-    cities = defaultdict(int)
-    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
-        for line in data_file:
-            data = json.loads(line)
-            cities[data['city']] += 1
-    dests = sort_dict_by_val(cities)[:10]
-
-    dests = sorted(dests)
-    homes = sorted(cities.keys())
-    return dests, homes
 
 
 # responds to request
