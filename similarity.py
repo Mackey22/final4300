@@ -151,6 +151,15 @@ def process_query(query, city, state, sim_matrix):
 # print "10 most similar restaurants to " + query + " are: \n"
 # print process_query(query, sim_matrix)
 
+def get_ordered_cities():
+    cities = defaultdict(int)
+    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
+        for line in data_file:
+            data = json.loads(line)
+            cities[data['city']] += 1
+    dests = sort_dict_by_val(cities)
+    return dests
+
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
@@ -160,6 +169,7 @@ def gen_data_file():
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
         business_name_to_id = json.load(data_file)
+    cities = get_ordered_cities()
     unique_ids, reviews = get_reviews_and_ids(cutoff)
     n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
@@ -170,6 +180,8 @@ def gen_data_file():
     data['business_name_to_id'] = business_name_to_id
     data['sim_matrix'] = sim_matrix.tolist()
     data['unique_ids'] = unique_ids
+    data['cities'] = cities
+    
     with open('jsons/kardashian-transcripts.json', 'w') as fp:
         json.dump(data, fp)
 
