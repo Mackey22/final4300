@@ -1,8 +1,11 @@
 import json
 import numpy as np
 from collections import defaultdict
+from data_play import make_hist
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import time
+from collections import defaultdict
 
 
 def gen_business_id_to_name():
@@ -42,7 +45,7 @@ business_id_to_name = gen_business_id_to_name()
 
 
 def get_reviews_and_ids():
-    """Return list of unique business_ids, list of concatanted reviews corresponding to list of business_ids."""
+    """Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
     reviews_map = defaultdict(str)
     count = 0
     with open('reviews.json') as data_file:
@@ -59,18 +62,34 @@ def get_reviews_and_ids():
     for ID,reviews in reviews_map.iteritems():
         ordered_business_ids.append(ID)
         ordered_reviews.append(reviews)
-    print ordered_reviews[0]
+    # print ordered_reviews[0]
     return ordered_business_ids, ordered_reviews
 
 # CREATE TFIDF MATRIX
 # UNIQUE_IDS is a list of restaurant ids corresponding to the list of REVIEWS
+
+
 print("before get_reviews_and_ids() call\n")
 unique_ids, reviews = get_reviews_and_ids()
 print("after get_reviews_and_ids() call\n")
+
 n_feats = 5000
-tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=3, max_features=n_feats, stop_words='english', norm='l2')
+tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=10, max_features=n_feats, stop_words='english', norm='l2')
 restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
+
+
+def prune_json(n):
+    new_map = {}
+    with open('jsons/try1.json') as data_file:
+        data = json.load(data_file)
+    for k, v in data.items():
+        if v['review_count'] >= n:
+            new_map[k] = v
+    with open('jsons/pruned.json', 'w') as fp:
+        json.dump(new_map, fp, indent=4)
+
 print("tfidf vectorizer done \n")
+
 
 def get_sim(vec1, vec2):
     """
@@ -96,9 +115,11 @@ def gen_sim_matrix():
                 restaurant_sims[i][j] = 0
     return restaurant_sims
 
+
 print("About to generate sim matrix\n")
 sim_matrix = gen_sim_matrix()
 print("Generated sim matrix\n")
+
 
 def find_most_similar(sim_matrix, id1, k=10):
     """
