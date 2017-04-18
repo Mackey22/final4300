@@ -52,7 +52,8 @@ def get_ordered_cities():
 
 
 # responds to request
-def find_similar(query):
+def find_similar(query,origin,destination):
+    print origin,destination
     query = query.lower() # business_name_to_id.json has all business names in lower case
     sim_matrix, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
     if query in business_name_to_id:
@@ -69,4 +70,4 @@ def find_similar(query):
         bid = business_name_to_id[bestMatch][0]
     result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
-    return result
+    return result, bestMatch
