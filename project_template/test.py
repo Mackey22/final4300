@@ -52,10 +52,10 @@ def read_file(n):
 
 # responds to request
 def find_similar(query,origin,destination):
-    print origin,destination
     query = query.lower() # business_name_to_id.json has all business names in lower case
     sim_matrix, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
     if query in business_name_to_id:
+        bestMatch = query
         bid = business_name_to_id[query][0] # Change the index to find the correct restaurant based on city later.
     else:
         minDist = 999999
