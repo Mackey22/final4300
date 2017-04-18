@@ -10,11 +10,13 @@ from collections import defaultdict
 
 def gen_business_id_to_name():
     """Return Dict - maps business id to business name."""
-    business_id_to_name = defaultdict(str)
-    with open('yelp_academic_dataset_business.json') as data_file:
-        for line in data_file:
-            data = (json.loads(line))
-            business_id_to_name[data['business_id']] = data['name']
+    #business_id_to_name = defaultdict(str)
+    # with open('yelp_academic_dataset_business.json') as data_file:
+    #     for line in data_file:
+    #         data = (json.loads(line))
+    #         business_id_to_name[data['business_id']] = data['name']
+    with open('business_id_to_name.json') as data_file:
+        business_id_to_name = json.load(data_file)
     return business_id_to_name
 business_id_to_name = gen_business_id_to_name()
 
