@@ -161,9 +161,9 @@ def gen_data_file():
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
-    data['sim_matrix'] = sim_matrix
+    data['sim_matrix'] = sim_matrix.tolist()
     data['unique_ids'] = unique_ids
-    with open('kardashian-transcripts.json', 'w') as fp:
+    with open('jsons/kardashian-transcripts.json', 'w') as fp:
         json.dump(data, fp)
 
     end = time.time()
