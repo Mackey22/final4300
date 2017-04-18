@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from collections import defaultdict
-#from data_play import make_hist
+# from data_play import make_hist
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import time
@@ -64,19 +64,6 @@ def get_reviews_and_ids():
     # print ordered_reviews[0]
     return ordered_business_ids, ordered_reviews
 
-# CREATE TFIDF MATRIX
-# UNIQUE_IDS is a list of restaurant ids corresponding to the list of REVIEWS
-
-
-print("before get_reviews_and_ids() call\n")
-unique_ids, reviews = get_reviews_and_ids()
-print("after get_reviews_and_ids() call\n")
-
-print("length of unique_ids: " + str(len(unique_ids)))
-n_feats = 5000
-tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
-restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
-
 
 def prune_json(n):
     new_map = {}
@@ -137,12 +124,14 @@ def find_most_similar(sim_matrix, id1, k=10):
 
     return most_similar_scores_and_ids
 
+
 def lookup_business_id(name):
         with open('business_name_to_id.json') as data_file:
             business_name_to_id = json.load(data_file)
         ids = business_name_to_id[name]
         rest_id = ids[0] # For now, just assume the user means the 1st restaurant with that given name. Later, filter based on city to find the exact one
         return rest_id
+
 
 def process_query(query, sim_matrix):
     query = query.lower() # business_name_to_id.json has all business names in lower case
@@ -154,5 +143,18 @@ query = "mcdonald's"
 print "10 most similar restaurants to " + query + " are: \n"
 print process_query(query, sim_matrix)
 
-#print unique_ids[0]
-#print find_most_similar(sim_matrix, unique_ids[0])
+# print unique_ids[0]
+# print find_most_similar(sim_matrix, unique_ids[0])
+
+# CREATE TFIDF MATRIX
+# UNIQUE_IDS is a list of restaurant ids corresponding to the list of REVIEWS
+
+if __name__ == "__main__":
+    print("before get_reviews_and_ids() call\n")
+    unique_ids, reviews = get_reviews_and_ids()
+    print("after get_reviews_and_ids() call\n")
+
+    print("length of unique_ids: " + str(len(unique_ids)))
+    n_feats = 5000
+    tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
+    restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
