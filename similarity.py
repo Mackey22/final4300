@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from collections import defaultdict
-from data_play import make_hist
+#from data_play import make_hist
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import time
@@ -50,11 +50,12 @@ def get_reviews_and_ids():
     count = 0
     with open('reviews.json') as data_file:
         data = json.load(data_file)
+    print("Number of businesses in file to iterate through: " + str(len(data)))
     for key in data:
         count += 1
-        if count > 10:
-            break
         reviews_map[key] = data[key]['reviews']
+        if count > 5000:
+            break
 
     ordered_business_ids = []
     ordered_reviews = []
@@ -73,8 +74,9 @@ print("before get_reviews_and_ids() call\n")
 unique_ids, reviews = get_reviews_and_ids()
 print("after get_reviews_and_ids() call\n")
 
+print("length of unique_ids: " + str(len(unique_ids)))
 n_feats = 5000
-tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=10, max_features=n_feats, stop_words='english', norm='l2')
+tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
 restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
 
@@ -137,6 +139,22 @@ def find_most_similar(sim_matrix, id1, k=10):
 
     return most_similar_scores_and_ids
 
+def lookup_business_id(name):
+        with open('business_name_to_id.json') as data_file:
+            business_name_to_id = json.load(data_file)
+        ids = business_name_to_id[name]
+        rest_id = ids[0] # For now, just assume the user means the 1st restaurant with that given name. Later, filter based on city to find the exact one
+        return rest_id
 
-print unique_ids[0]
-print find_most_similar(sim_matrix, unique_ids[0])
+def process_query(query, sim_matrix):
+    query = query.lower() # business_name_to_id.json has all business names in lower case
+    bid = lookup_business_id(query)
+    most_sim = find_most_similar(sim_matrix, bid)
+    return most_sim
+
+query = "mcdonald's"
+print "10 most similar restaurants to " + query + " are: \n"
+print process_query(query, sim_matrix)
+
+#print unique_ids[0]
+#print find_most_similar(sim_matrix, unique_ids[0])
