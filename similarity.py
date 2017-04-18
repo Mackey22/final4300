@@ -11,10 +11,12 @@ from collections import defaultdict
 def gen_business_id_to_name():
     """Return Dict - maps business id to business name."""
     business_id_to_name = defaultdict(str)
-    with open('yelp_academic_dataset_business.json') as data_file:
-        for line in data_file:
-            data = (json.loads(line))
-            business_id_to_name[data['business_id']] = data['name']
+    # with open('yelp_academic_dataset_business.json') as data_file:
+    #     for line in data_file:
+    #         data = (json.loads(line))
+    #         business_id_to_name[data['business_id']] = data['name']
+    with open('business_id_to_name.json') as data_file:
+        business_id_to_name = json.load(data_file)
     return business_id_to_name
 
 # business_id_to_name = gen_business_id_to_name()
@@ -49,7 +51,7 @@ def get_reviews_and_ids(maxNum):
     count = 0
     with open('reviews.json') as data_file:
         data = json.load(data_file)
-    print("Number of businesses in file to iterate through: " + str(len(data)))
+    #print("Number of businesses in file to iterate through: " + str(len(data)))
     for key in data:
         count += 1
         reviews_map[key] = data[key]['reviews']
@@ -150,7 +152,7 @@ def gen_data_file():
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
         business_name_to_id = json.load(data_file)
-    unique_ids, reviews = get_reviews_and_ids(1000)             # Cut off at 3000 businesses for size limitaitons, figure out later
+    unique_ids, reviews = get_reviews_and_ids(300)             # Cut off at 3000 businesses for size limitaitons, figure out later
     n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
@@ -158,10 +160,10 @@ def gen_data_file():
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
-    data['sim_matrix'] = sim_matrix
+    data['sim_matrix'] = sim_matrix.tolist()
     data['unique_ids'] = unique_ids
-    with open('kardashian-transcripts.json', 'w') as fp:
-        json.dump(business_id_to_name, fp)
+    with open('jsons/kardashian-transcripts.json', 'w') as fp:
+        json.dump(data, fp)
 
     end = time.time()
     print("Preprocessing took: " + str(end - start) + " seconds")
