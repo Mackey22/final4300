@@ -16,7 +16,8 @@ def gen_business_id_to_name():
             data = (json.loads(line))
             business_id_to_name[data['business_id']] = data['name']
     return business_id_to_name
-business_id_to_name = gen_business_id_to_name()
+
+#business_id_to_name = gen_business_id_to_name()
 
 # Old version of the function parses the original Yelp dataset file
 # def get_reviews_and_ids_old():
@@ -42,7 +43,7 @@ business_id_to_name = gen_business_id_to_name()
 #     return ordered_business_ids, ordered_reviews
 
 
-def get_reviews_and_ids():
+def get_reviews_and_ids(maxNum):
     """Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
     reviews_map = defaultdict(str)
     count = 0
@@ -52,7 +53,7 @@ def get_reviews_and_ids():
     for key in data:
         count += 1
         reviews_map[key] = data[key]['reviews']
-        if count > 5000:
+        if count > maxNum:
             break
 
     ordered_business_ids = []
@@ -75,7 +76,6 @@ def prune_json(n):
     with open('jsons/pruned.json', 'w') as fp:
         json.dump(new_map, fp, indent=4)
 
-print("tfidf vectorizer done \n")
 
 
 def get_sim(vec1, vec2):
@@ -92,7 +92,7 @@ def get_sim(vec1, vec2):
     return sim[0][0]
 
 
-def gen_sim_matrix():
+def gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix):
     restaurant_sims = np.empty([len(unique_ids), len(unique_ids)], dtype=np.float32)
     for i in range(len(unique_ids)):
         for j in range(len(unique_ids)):
@@ -103,9 +103,9 @@ def gen_sim_matrix():
     return restaurant_sims
 
 
-print("About to generate sim matrix\n")
-sim_matrix = gen_sim_matrix()
-print("Generated sim matrix\n")
+# print("About to generate sim matrix\n")
+# sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
+# print("Generated sim matrix\n")
 
 
 def find_most_similar(sim_matrix, id1, k=10):
@@ -139,22 +139,43 @@ def process_query(query, sim_matrix):
     most_sim = find_most_similar(sim_matrix, bid)
     return most_sim
 
-query = "mcdonald's"
-print "10 most similar restaurants to " + query + " are: \n"
-print process_query(query, sim_matrix)
+# query = "mcdonald's"
+# print "10 most similar restaurants to " + query + " are: \n"
+# print process_query(query, sim_matrix)
 
-# print unique_ids[0]
-# print find_most_similar(sim_matrix, unique_ids[0])
 
-# CREATE TFIDF MATRIX
-# UNIQUE_IDS is a list of restaurant ids corresponding to the list of REVIEWS
-
-if __name__ == "__main__":
-    print("before get_reviews_and_ids() call\n")
-    unique_ids, reviews = get_reviews_and_ids()
-    print("after get_reviews_and_ids() call\n")
-
-    print("length of unique_ids: " + str(len(unique_ids)))
+# Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
+def gen_data_file():
+    start = time.time()
+    with open('business_id_to_name.json') as data_file:
+        business_id_to_name = json.load(data_file)
+    with open('business_name_to_id.json') as data_file:
+        business_name_to_id = json.load(data_file)
+    unique_ids, reviews = get_reviews_and_ids(1000)             # Cut off at 3000 businesses for size limitaitons, figure out later
     n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
+    sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
+    data = {}
+    data['business_id_to_name'] = business_id_to_name
+    data['business_name_to_id'] = business_name_to_id
+    data['sim_matrix'] = sim_matrix
+    data['unique_ids'] = unique_ids
+    with open('kardashian-transcripts.json', 'w') as fp:
+        json.dump(business_id_to_name, fp)
+
+    end = time.time()
+    print("Preprocessing took: " + str(end - start) + " seconds")
+
+
+if __name__ == "__main__":
+    # print("before get_reviews_and_ids() call\n")
+    # unique_ids, reviews = get_reviews_and_ids()
+    # print("after get_reviews_and_ids() call\n")
+
+    # print("length of unique_ids: " + str(len(unique_ids)))
+    # n_feats = 5000
+    # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
+    # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
+
+    gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
