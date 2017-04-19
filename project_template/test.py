@@ -64,7 +64,25 @@ def find_similar(query,origin,destination):
             if lists[1][i] == originCity:
                 bid = lists[0][i]
                 break
-        result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
+        # This if/else block is to deal with the unique_ids problem. Remove it later on
+        if bid in unique_ids:
+            result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
+        else:
+            minDist = 999999
+            # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
+            bestMatchKey = query
+            bestMatchBid = ''
+            for bid in unique_ids:
+                business = business_id_to_name[bid]
+                name = business[0]
+                city = business[1] # Use this later to restrict search to within origin city. Not using it now because it'll suck with a small dataset
+                dist = Levenshtein.distance(name, query)
+                if dist < minDist:
+                    minDist = dist
+                    bestMatchKey = name
+                    bestMatchBid = bid
+            bid = bestMatchBid
+            result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
     else:
         minDist = 999999
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -91,4 +109,4 @@ def find_similar(query,origin,destination):
         bid = bestMatchBid
         result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
-    return result, bestMatch
+    return result, bestMatchKey
