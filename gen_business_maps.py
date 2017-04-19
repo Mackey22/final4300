@@ -1,7 +1,7 @@
 import json
 from collections import defaultdict
 
-cutoff = 300 # This has to match the cutoff used in similarity.py. Maybe even just move these functions to that file
+cutoff = 999999 # This has to match the cutoff used in similarity.py. Maybe even just move these functions to that file
 
 def gen_business_id_to_name(cutoff):
     """Return Dict - maps business id to business name."""

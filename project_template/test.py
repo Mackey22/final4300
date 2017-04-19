@@ -46,7 +46,7 @@ def read_file(n):
     print "length sim matrix: " + str(len(sim_matrix))
     print "length unique_ids: " + str(len(unique_ids))
     print unique_ids[0]
-    print business_id_to_name[unique_ids[0]]
+    #print business_id_to_name[unique_ids[0]]
     return sim_matrix, unique_ids, business_id_to_name, business_name_to_id
 
 
@@ -70,14 +70,24 @@ def find_similar(query,origin,destination):
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
         bestMatchKey = query
         bestMatchBid = ''
-        for key, value in business_name_to_id.iteritems():
-            if originCity in value[1]:
-                idx = value[1].indexOf(originCity)
-                dist = Levenshtein.distance(query, key)
-                if dist < minDist:
-                    minDist = dist
-                    bestMatchKey = key
-                    bestMatchBid = value[0][i]
+        for bid in unique_ids:
+            business = business_id_to_name[bid]
+            name = business[0]
+            city = business[1] # Use this later to restrict search to within origin city. Not using it now because it'll suck with a small dataset
+            dist = Levenshtein.distance(name, query)
+            if dist < minDist:
+                minDist = dist
+                bestMatchKey = name
+                bestMatchBid = bid
+        # This code should work once we're using the complete dataset. But commented out and using simpler version for now for prototype
+        # for key, value in business_name_to_id.iteritems():
+        #     if originCity in value[1]:
+        #         idx = value[1].indexOf(originCity)
+        #         dist = Levenshtein.distance(query, key)
+        #         if dist < minDist:
+        #             minDist = dist
+        #             bestMatchKey = key
+        #             bestMatchBid = value[0][i]
         bid = bestMatchBid
         result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
 
