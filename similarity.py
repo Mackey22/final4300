@@ -57,10 +57,14 @@ def get_reviews_and_ids(maxNum, minReviews):
     count = 0
 
     filteredBusinesses = 0
-     
+    print("\nIn get_reviews_and_ids")
+    loadReviewsStart = time.time()
     with open('reviews.json') as data_file:
         data = json.load(data_file)
+    loadReviewsEnd = time.time()
+    print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
     #print("Number of businesses in file to iterate through: " + str(len(data)))
+    reviewMapStart = time.time()
     for key in data:
         if int(data[key]['review_count']) >= minReviews:
             count += 1
@@ -69,15 +73,19 @@ def get_reviews_and_ids(maxNum, minReviews):
                 break
         else:
             filteredBusinesses += 1
-
+    reviewMapEnd = time.time()
+    print ("Created review map in " + str(reviewMapEnd - reviewMapStart) + " seconds\n")
     print("Included " + str(count) + " businesses, filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
 
     ordered_business_ids = []
     ordered_reviews = []
 
+    orderedReviewsStart = time.time()
     for ID,reviews in reviews_map.iteritems():
         ordered_business_ids.append(ID)
         ordered_reviews.append(reviews)
+    orderedReviewsEnd = time.time()
+    print ("Ordered businesses & reviews in " + str(orderedReviewsEnd - orderedReviewsStart) + " seconds\n")
     # print ordered_reviews[0]
     return ordered_business_ids, ordered_reviews
 
@@ -174,48 +182,51 @@ def get_ordered_cities():
     dests = sort_dict_by_val(cities)
     return dests
 
-def gen_business_id_to_name(cutoff):
+def gen_business_id_to_name(cutoff, minReviews):
     """Return Dict - maps business id to business name."""
     business_id_to_name = defaultdict(str)
     with open('yelp data/yelp_academic_dataset_business.json') as data_file:
         count = 0
         for line in data_file:
-            count += 1
             data = (json.loads(line))
-            business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
-            if count > cutoff:
-                break
+            if int(data['review_count']) >= minReviews:
+                count += 1
+                business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
+                if count > cutoff:
+                    break
     with open('business_id_to_name.json', 'w') as fp:
         json.dump(business_id_to_name, fp)
 
 
-def gen_business_name_to_id(cutoff):
+def gen_business_name_to_id(cutoff, minReviews):
     """Return Dict - maps business names to business ids."""
     business_name_to_id = defaultdict(str)
     with open('yelp data/yelp_academic_dataset_business.json') as data_file:
         count = 0
         for line in data_file:
-            count += 1
             data = (json.loads(line))
-            if data['name'].lower() in business_name_to_id:
-                business_name_to_id[data['name'].lower()][0].append(data['business_id'])
-                business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
-                business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
-            else:
-                business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
-            if count > cutoff:
-                break
+            if int(data['review_count']) >= minReviews:
+                count += 1
+                if data['name'].lower() in business_name_to_id:
+                    business_name_to_id[data['name'].lower()][0].append(data['business_id'])
+                    business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
+                    business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
+                else:
+                    business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
+                if count > cutoff:
+                    break
     with open('business_name_to_id.json', 'w') as fp:
         json.dump(business_name_to_id, fp)
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
-    cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
+    minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
+    cutoff = 1000 # Cut off at 300 businesses for size limitaitons, figure out later.
     gen_business_start = time.time()
     print("starting business id dict generation")
-    gen_business_id_to_name(999999) # I think we can't cut this off when we're only using a partial dataset
-    gen_business_name_to_id(999999)
+    gen_business_id_to_name(999999, minReviews) # I think we can't cut this off when we're only using a partial dataset
+    gen_business_name_to_id(999999, minReviews)
     with open('business_id_to_name.json') as data_file:
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
@@ -225,7 +236,6 @@ def gen_data_file():
     print("starting initial sim_mat generation")
     sim_mat_start = time.time()
     cities = get_ordered_cities()
-    minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
     get_reviews_start = time.time()
     unique_ids, reviews = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
     get_reviews_end = time.time()
@@ -257,6 +267,8 @@ def gen_data_file():
     print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
     ##end SVD
 
+    saveDataStart = time.time()
+
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
@@ -266,6 +278,9 @@ def gen_data_file():
 
     with open('jsons/kardashian-transcripts.json', 'w') as fp:
         json.dump(data, fp)
+
+    saveDataEnd = time.time()
+    print("Saving preprocessed data took " + str(saveDataEnd - saveDataStart) + " seconds\n")
 
     end = time.time()
     print("Preprocessing took: " + str(end - start) + " seconds")
