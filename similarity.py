@@ -55,14 +55,22 @@ def get_reviews_and_ids(maxNum, minReviews):
     """Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
     reviews_map = defaultdict(str)
     count = 0
+
+    filteredBusinesses = 0
+     
     with open('reviews.json') as data_file:
         data = json.load(data_file)
     #print("Number of businesses in file to iterate through: " + str(len(data)))
     for key in data:
-        count += 1
-        reviews_map[key] = data[key]['reviews']
-        if count > maxNum:
-            break
+        if int(data[key]['review_count']) >= minReviews:
+            count += 1
+            reviews_map[key] = data[key]['reviews']
+            if count >= maxNum:
+                break
+        else:
+            filteredBusinesses += 1
+
+    print("Included " + str(count) + " businesses, filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
 
     ordered_business_ids = []
     ordered_reviews = []
@@ -225,12 +233,23 @@ def gen_data_file():
     print("starting initial sim_mat generation")
     sim_mat_start = time.time()
     cities = get_ordered_cities()
-    minReviews = 5  # Change this to change minimum number of business reviews for it to be included in dataset
+    minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
+    get_reviews_start = time.time()
     unique_ids, reviews = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
+    get_reviews_end = time.time()
+    print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
     n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
+    fit_transform_start = time.time()
     restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
-    sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
+    fit_transform_end = time.time()
+    print ("finished tfidf_vec.fit_transform in " + str(fit_transform_end - fit_transform_start) + " seconds\n")
+
+    # Don't need this code when we're using SVD on the restaurant_by_vocab matrix
+    # gen_sim_matrix_start = time.time()
+    # sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
+    # gen_sim_matrix_end = time.time()
+    # print ("finished gen_sim_matrix in " + str(gen_sim_matrix_end - gen_sim_matrix_start) + " seconds\n")
     sim_mat_end = time.time()
     print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
 
