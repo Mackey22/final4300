@@ -219,10 +219,11 @@ def gen_business_name_to_id(cutoff, minReviews):
         json.dump(business_name_to_id, fp)
 
 
-def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name):
+def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, numToFind):
     print "Creating map from city -> restaurant -> top sim restaurants"
+    topRestStart = time.time()
     n, d = svd_matrix.shape
-    print len(unique_ids)
+    topMatchMat = np.zeros((n, numToFind))
     for i in range(n):
         restaurant_to_mult = svd_matrix[i]
         one_restaurant_similarity = np.dot(svd_matrix, restaurant_to_mult)
@@ -230,14 +231,20 @@ def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name):
 
         ordered_indices = np.argsort(one_restaurant_similarity)[::-1]
         # print "Indices", ordered_indices[0, :20]
-        print "Ordered Scores", one_restaurant_similarity[ordered_indices][:6]
+        #print "Ordered Scores", one_restaurant_similarity[ordered_indices][1:numToFind+1]
+        #print ordered_indices
+        topMatchMat[i] = ordered_indices[1:numToFind+1]
+    #print topMatchMat
+    topRestEnd = time.time()
+    print("Mapping restaurants to top similar took: " + str(topRestEnd - topRestStart) + " seconds\n")
+    return topMatchMat
 
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
     minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
-    cutoff = 500 # Cut off at 300 businesses for size limitaitons, figure out later.
+    cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
     gen_business_start = time.time()
     print("starting business id dict generation")
     gen_business_id_to_name(999999, minReviews) # I think we can't cut this off when we're only using a partial dataset
@@ -282,19 +289,22 @@ def gen_data_file():
     print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
     # end SVD
 
+    topNToFind = 10 # Find top 10 most similar restaurants
+    topMatches = map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, topNToFind)
+
     saveDataStart = time.time()
 
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
-    data['svd_matrix'] = svd_matrix.tolist()
+    data['topMatches'] = topMatches.tolist()
     data['unique_ids'] = unique_ids
     data['cities'] = cities
 
     with open('jsons/kardashian-transcripts.json', 'w') as fp:
         json.dump(data, fp)
-    with open('jsons/svd_matrix.json', 'w') as fp:
-        json.dump(svd_matrix.tolist(), fp)
+    #with open('jsons/svd_matrix.json', 'w') as fp:
+    #    json.dump(svd_matrix.tolist(), fp)
 
     saveDataEnd = time.time()
     print("Saving preprocessed data took " + str(saveDataEnd - saveDataStart) + " seconds\n")
@@ -321,6 +331,7 @@ if __name__ == "__main__":
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-    #gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
-    mtx, unique_ids, business_id_to_name = load_precomputed_svds()
-    map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name)
+    gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    #mtx, unique_ids, business_id_to_name = load_precomputed_svds()
+    #topNToFind = 10 # Find top 10 most similar restaurants
+    #map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
