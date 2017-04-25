@@ -32,7 +32,7 @@ def api_business_info(business_name, location):
 
 
 
-def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
+def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, k=5):
     """
     Find most similar restaurants to the given restaurant id.
 
@@ -40,19 +40,21 @@ def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
     Returns: list of (score, restaurant name) tuples for restaurant with id1 sorted by cosine_similarity score
     """
     rel_index = unique_ids.index(id1)
-    rel_row = sim_matrix[rel_index]
-    max_indices = np.argpartition(rel_row, -k)[-k:]
-    most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
-    most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
+    #rel_row = sim_matrix[rel_index]
+    topMatchesRow = topMatches[rel_index]
+    #max_indices = np.argpartition(rel_row, -k)[-k:]
+    #most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
+    #most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
+    most_similar_ids = [business_id_to_name[unique_ids[x]] for x in topMatchesRow]
     # id -> (name,city,state)
     res = []
-    for score, info in most_similar_scores_and_ids:
+    for info in most_similar_ids:
         name = info[0]
         city = info[1]
         state = info[2]
         location = city + " " + state
         extra_info = api_business_info(name,location)
-        res.append((score,extra_info))
+        res.append(extra_info)
     return res
 
 
@@ -75,15 +77,16 @@ def read_file(n):
     path = Docs.objects.get(id=n).address
     file = open(path)
     data = json.load(file)
-    sim_matrix = data['svd_matrix']
+    #sim_matrix = data['svd_matrix']
+    topMatches = data['topMatches']
     unique_ids = data['unique_ids']
     business_id_to_name = data['business_id_to_name']
     business_name_to_id = data['business_name_to_id']
-    print "length sim matrix: " + str(len(sim_matrix))
+    #print "length sim matrix: " + str(len(sim_matrix))
     print "length unique_ids: " + str(len(unique_ids))
     print unique_ids[0]
     #print business_id_to_name[unique_ids[0]]
-    return sim_matrix, unique_ids, business_id_to_name, business_name_to_id
+    return topMatches, unique_ids, business_id_to_name, business_name_to_id
 
 
 # responds to request
@@ -92,7 +95,7 @@ def find_similar(query,origin,destination):
     originCity = origin.lower()
     destCity = destination.lower()
     query = query.lower() # business_name_to_id.json has all business names in lower case
-    sim_matrix, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
+    topMatches, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
     if query in business_name_to_id:
         bid = business_name_to_id[query][0]
         lists = business_name_to_id[query]
@@ -102,7 +105,7 @@ def find_similar(query,origin,destination):
                 break
         # This if/else block is to deal with the unique_ids problem. Remove it later on
         if bid in unique_ids:
-            result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
+            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid)
         else:
             minDist = 999999
             # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -118,7 +121,7 @@ def find_similar(query,origin,destination):
                     bestMatchKey = name
                     bestMatchBid = bid
             bid = bestMatchBid
-            result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
+            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid)
     else:
         minDist = 999999
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -143,6 +146,6 @@ def find_similar(query,origin,destination):
         #             bestMatchKey = key
         #             bestMatchBid = value[0][i]
         bid = bestMatchBid
-        result = find_most_similar(sim_matrix, unique_ids, business_id_to_name, bid)
+        result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid)
 
     return result, bestMatchKey

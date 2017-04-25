@@ -218,12 +218,12 @@ def gen_business_name_to_id(cutoff, minReviews):
     with open('business_name_to_id.json', 'w') as fp:
         json.dump(business_name_to_id, fp)
 
-
+# Have to update this to do it based on dest city
 def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, numToFind):
     print "Creating map from city -> restaurant -> top sim restaurants"
     topRestStart = time.time()
     n, d = svd_matrix.shape
-    topMatchMat = np.zeros((n, numToFind))
+    topMatchMat = np.zeros((n, numToFind), dtype=int)
     for i in range(n):
         restaurant_to_mult = svd_matrix[i]
         one_restaurant_similarity = np.dot(svd_matrix, restaurant_to_mult)
