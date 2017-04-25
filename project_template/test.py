@@ -75,7 +75,7 @@ def read_file(n):
     path = Docs.objects.get(id=n).address
     file = open(path)
     data = json.load(file)
-    sim_matrix = data['sim_matrix']
+    sim_matrix = data['svd_matrix']
     unique_ids = data['unique_ids']
     business_id_to_name = data['business_id_to_name']
     business_name_to_id = data['business_name_to_id']
