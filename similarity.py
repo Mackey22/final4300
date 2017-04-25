@@ -56,7 +56,6 @@ def get_reviews_and_ids(maxNum, minReviews):
     reviews_map = defaultdict(str)
     count = 0
 
-    includedBusinesses = 0
     filteredBusinesses = 0
      
     with open('reviews.json') as data_file:
@@ -66,13 +65,12 @@ def get_reviews_and_ids(maxNum, minReviews):
         if int(data[key]['review_count']) >= minReviews:
             count += 1
             reviews_map[key] = data[key]['reviews']
-            includedBusinesses += 1
             if count >= maxNum:
                 break
         else:
             filteredBusinesses += 1
 
-    print("Included " + str(includedBusinesses) + " businesses, filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
+    print("Included " + str(count) + " businesses, filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
 
     ordered_business_ids = []
     ordered_reviews = []
