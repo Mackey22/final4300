@@ -200,7 +200,7 @@ def gen_business_name_to_id(cutoff):
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
-    cutoff = 1000 # Cut off at 100 businesses for size limitaitons, figure out later. Make sure it matches cutoff in gen_business_maps.py
+    cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
     gen_business_id_to_name(cutoff)
     gen_business_name_to_id(cutoff)
     with open('business_id_to_name.json') as data_file:
