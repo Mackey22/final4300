@@ -7,7 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import time
 from collections import defaultdict
 from sklearn.decomposition import TruncatedSVD
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import Normalizer
+import sys
 
 def sort_dict_by_val(d):
     """Get a list of a dict's keys ordered by descending values."""
@@ -158,7 +159,7 @@ def process_query(query, city, state, sim_matrix):
 
 def get_ordered_cities():
     cities = defaultdict(int)
-    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
         for line in data_file:
             data = json.loads(line)
             cities[data['city']] += 1
@@ -203,18 +204,40 @@ def gen_business_name_to_id(cutoff):
 def gen_data_file():
     start = time.time()
     cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
-    gen_business_id_to_name(cutoff)
-    gen_business_name_to_id(cutoff)
+    gen_business_start = time.time()
+    print("starting business id dict generation")
+    gen_business_id_to_name(999999) # I think we can't cut this off when we're only using a partial dataset
+    gen_business_name_to_id(999999)
     with open('business_id_to_name.json') as data_file:
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
         business_name_to_id = json.load(data_file)
+    gen_business_end = time.time()
+    print("finished business id dict generation in " + str(gen_business_end - gen_business_start) + " seconds\n")
+    print("starting initial sim_mat generation")
+    sim_mat_start = time.time()
     cities = get_ordered_cities()
-    unique_ids, reviews = get_reviews_and_ids(cutoff)
+    minReviews = 5  # Change this to change minimum number of business reviews for it to be included in dataset
+    unique_ids, reviews = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
     n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
     sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
+    sim_mat_end = time.time()
+    print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
+
+    #perform SVD
+    svdStart = time.time()
+    print ("starting SVD")
+    reduced_size = 50 #Can by changed as needed
+    lsa = TruncatedSVD(reduced_size, algorithm='randomized')
+    svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
+    svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) #copy=false to perform in place normalization, useful on larger dataset
+    sim_matrix = svd_matrix.dot(svd_matrix.T)
+    svdEnd = time.time()
+    print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
+    ##end SVD
+
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
@@ -228,33 +251,6 @@ def gen_data_file():
     end = time.time()
     print("Preprocessing took: " + str(end - start) + " seconds")
 
-def gen_sim_matrix_SVD():
-    print ("starting SVD")
-    cutoff = 300 # Cut off at 100 businesses for size limitaitons, figure out later. Make sure it matches cutoff in gen_business_maps.py
-    with open('business_id_to_name.json') as data_file:
-        business_id_to_name = json.load(data_file)
-    with open('business_name_to_id.json') as data_file:
-        business_name_to_id = json.load(data_file)
-    print ("openend two files")
-    cities = get_ordered_cities()
-    unique_ids, reviews = get_reviews_and_ids(cutoff)
-    #create doc-term matrix in same way
-    n_feats = 5000
-    tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
-    restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
-    feature_names = tfidf_vec.get_feature_names()
-    print ("created vectorizer")
-    #perform SVD
-    reduced_size = 50 #Can by changed as needed
-    lsa = TruncatedSVD(reduced_size, algorithm='random')
-    svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
-    svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) #copy=false to perform in place normalization, useful on larger dataset
-    sim_matrix = svd_matrix.dot(svd_matrix.T)
-    print ("finished SVD")
-
-    return sim_matrix
-
-gen_sim_matrix_SVD()
 
 if __name__ == "__main__":
     # print("before get_reviews_and_ids() call\n")
