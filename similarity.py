@@ -51,7 +51,7 @@ def gen_business_id_to_name():
 #     return ordered_business_ids, ordered_reviews
 
 
-def get_reviews_and_ids(maxNum):
+def get_reviews_and_ids(maxNum, minReviews):
     """Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
     reviews_map = defaultdict(str)
     count = 0
