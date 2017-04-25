@@ -166,6 +166,7 @@ def get_ordered_cities():
     dests = sort_dict_by_val(cities)
     return dests
 
+
 def gen_business_id_to_name(cutoff):
     """Return Dict - maps business id to business name."""
     business_id_to_name = defaultdict(str)
@@ -200,6 +201,13 @@ def gen_business_name_to_id(cutoff):
     with open('business_name_to_id.json', 'w') as fp:
         json.dump(business_name_to_id, fp)
 
+
+def map_restaurant_to_top_similar(sim_matrix, unique_ids):
+    print "Creating map from city -> restaurant -> top sim restaurants"
+    ordered_indices = np.argsort(sim_matrix)
+    print ordered_indices[0, :20]
+
+
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
@@ -226,17 +234,17 @@ def gen_data_file():
     sim_mat_end = time.time()
     print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
 
-    #perform SVD
+    # perform SVD
     svdStart = time.time()
     print ("starting SVD")
-    reduced_size = 50 #Can by changed as needed
+    reduced_size = 50 # Can by changed as needed
     lsa = TruncatedSVD(reduced_size, algorithm='randomized')
     svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
-    svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) #copy=false to perform in place normalization, useful on larger dataset
+    svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) # copy=false to perform in place normalization, useful on larger dataset
     sim_matrix = svd_matrix.dot(svd_matrix.T)
     svdEnd = time.time()
     print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
-    ##end SVD
+    # end SVD
 
     data = {}
     data['business_id_to_name'] = business_id_to_name
