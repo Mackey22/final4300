@@ -165,11 +165,46 @@ def get_ordered_cities():
     dests = sort_dict_by_val(cities)
     return dests
 
+def gen_business_id_to_name(cutoff):
+    """Return Dict - maps business id to business name."""
+    business_id_to_name = defaultdict(str)
+    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
+        count = 0
+        for line in data_file:
+            count += 1
+            data = (json.loads(line))
+            business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
+            if count > cutoff:
+                break
+    with open('business_id_to_name.json', 'w') as fp:
+        json.dump(business_id_to_name, fp)
+
+
+def gen_business_name_to_id(cutoff):
+    """Return Dict - maps business names to business ids."""
+    business_name_to_id = defaultdict(str)
+    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
+        count = 0
+        for line in data_file:
+            count += 1
+            data = (json.loads(line))
+            if data['name'].lower() in business_name_to_id:
+                business_name_to_id[data['name'].lower()][0].append(data['business_id'])
+                business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
+                business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
+            else:
+                business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
+            if count > cutoff:
+                break
+    with open('business_name_to_id.json', 'w') as fp:
+        json.dump(business_name_to_id, fp)
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
     start = time.time()
-    cutoff = 300 # Cut off at 100 businesses for size limitaitons, figure out later. Make sure it matches cutoff in gen_business_maps.py
+    cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
+    gen_business_id_to_name(cutoff)
+    gen_business_name_to_id(cutoff)
     with open('business_id_to_name.json') as data_file:
         business_id_to_name = json.load(data_file)
     with open('business_name_to_id.json') as data_file:
