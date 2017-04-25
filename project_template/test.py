@@ -45,7 +45,7 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, k=5):
     #max_indices = np.argpartition(rel_row, -k)[-k:]
     #most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
     #most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
-    most_similar_ids = [business_id_to_name[unique_ids[x]] for x in topMatchesRow]
+    most_similar_ids = [business_id_to_name[unique_ids[x]] for x in topMatchesRow][:k]
     # id -> (name,city,state)
     res = []
     for info in most_similar_ids:
