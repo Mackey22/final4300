@@ -175,7 +175,7 @@ def process_query(query, city, state, sim_matrix):
 
 def get_ordered_cities():
     cities = defaultdict(int)
-    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
         for line in data_file:
             data = json.loads(line)
             cities[data['city']] += 1
@@ -185,7 +185,7 @@ def get_ordered_cities():
 def gen_business_id_to_name(cutoff, minReviews):
     """Return Dict - maps business id to business name."""
     business_id_to_name = defaultdict(str)
-    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
         count = 0
         for line in data_file:
             data = (json.loads(line))
@@ -201,7 +201,7 @@ def gen_business_id_to_name(cutoff, minReviews):
 def gen_business_name_to_id(cutoff, minReviews):
     """Return Dict - maps business names to business ids."""
     business_name_to_id = defaultdict(str)
-    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
         count = 0
         for line in data_file:
             data = (json.loads(line))
@@ -237,7 +237,7 @@ def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name):
 def gen_data_file():
     start = time.time()
     minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
-    cutoff = 1000 # Cut off at 300 businesses for size limitaitons, figure out later.
+    cutoff = 500 # Cut off at 300 businesses for size limitaitons, figure out later.
     gen_business_start = time.time()
     print("starting business id dict generation")
     gen_business_id_to_name(999999, minReviews) # I think we can't cut this off when we're only using a partial dataset
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     # n_feats = 5000
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
-    
-    # gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+
+    #gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
     mtx, unique_ids, business_id_to_name = load_precomputed_svds()
     map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name)
