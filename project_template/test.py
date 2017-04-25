@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from .models import Docs
 import os
 import json
@@ -63,6 +66,9 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, k=5):
 
 def get_ordered_cities():
     data = read(1)["cities"]
+    #Deal with Montréal and other accent problems here
+    for i in range(len(data)):
+        data[i] = data[i].replace(u'\xe9', 'e')
     return sorted(data[:10]), sorted(data)
 
 
