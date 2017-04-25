@@ -241,10 +241,10 @@ def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, n
 
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
-def gen_data_file():
+def gen_data_file(minReviews=25, cutoff=300, reduced_size=50, n_feats=5000, topNToFind=10):
     start = time.time()
-    minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
-    cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
+    #minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
+    #cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
     gen_business_start = time.time()
     print("starting business id dict generation")
     gen_business_id_to_name(999999, minReviews) # I think we can't cut this off when we're only using a partial dataset
@@ -262,7 +262,7 @@ def gen_data_file():
     unique_ids, reviews = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
     get_reviews_end = time.time()
     print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
-    n_feats = 5000
+    #n_feats = 5000
     tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     fit_transform_start = time.time()
     restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
@@ -280,7 +280,7 @@ def gen_data_file():
     # perform SVD
     svdStart = time.time()
     print ("starting SVD")
-    reduced_size = 50 # Can by changed as needed
+    #reduced_size = 50 # Can by changed as needed
     lsa = TruncatedSVD(reduced_size, algorithm='randomized')
     svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
     svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) # copy=false to perform in place normalization, useful on larger dataset
@@ -289,7 +289,7 @@ def gen_data_file():
     print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
     # end SVD
 
-    topNToFind = 10 # Find top 10 most similar restaurants
+    #topNToFind = 10 # Find top 10 most similar restaurants
     topMatches = map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, topNToFind)
 
     saveDataStart = time.time()
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-    gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
     #mtx, unique_ids, business_id_to_name = load_precomputed_svds()
     #topNToFind = 10 # Find top 10 most similar restaurants
     #map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
