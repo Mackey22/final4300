@@ -59,7 +59,7 @@ def get_reviews_and_ids(maxNum, minReviews):
     filteredBusinesses = 0
     print("\nIn get_reviews_and_ids")
     loadReviewsStart = time.time()
-    with open('reviews.json') as data_file:
+    with open('jsons/reviews.json') as data_file:
         data = json.load(data_file)
     loadReviewsEnd = time.time()
     print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
@@ -175,7 +175,7 @@ def process_query(query, city, state, sim_matrix):
 
 def get_ordered_cities():
     cities = defaultdict(int)
-    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
         for line in data_file:
             data = json.loads(line)
             cities[data['city']] += 1
@@ -185,7 +185,7 @@ def get_ordered_cities():
 def gen_business_id_to_name(cutoff, minReviews):
     """Return Dict - maps business id to business name."""
     business_id_to_name = defaultdict(str)
-    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
         count = 0
         for line in data_file:
             data = (json.loads(line))
@@ -201,7 +201,7 @@ def gen_business_id_to_name(cutoff, minReviews):
 def gen_business_name_to_id(cutoff, minReviews):
     """Return Dict - maps business names to business ids."""
     business_name_to_id = defaultdict(str)
-    with open('yelp data/yelp_academic_dataset_business.json') as data_file:
+    with open('yelp_data/yelp_academic_dataset_business.json') as data_file:
         count = 0
         for line in data_file:
             data = (json.loads(line))
@@ -217,6 +217,21 @@ def gen_business_name_to_id(cutoff, minReviews):
                     break
     with open('business_name_to_id.json', 'w') as fp:
         json.dump(business_name_to_id, fp)
+
+
+def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name):
+    print "Creating map from city -> restaurant -> top sim restaurants"
+    n, d = svd_matrix.shape
+    print len(unique_ids)
+    for i in range(n):
+        restaurant_to_mult = svd_matrix[i]
+        one_restaurant_similarity = np.dot(svd_matrix, restaurant_to_mult)
+        # print svd_matrix.shape, restaurant_to_mult.shape, one_restaurant_similarity.shape
+
+        ordered_indices = np.argsort(one_restaurant_similarity)[::-1]
+        # print "Indices", ordered_indices[0, :20]
+        print "Ordered Scores", one_restaurant_similarity[ordered_indices][:6]
+
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
 def gen_data_file():
@@ -255,35 +270,45 @@ def gen_data_file():
     sim_mat_end = time.time()
     print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
 
-    #perform SVD
+    # perform SVD
     svdStart = time.time()
     print ("starting SVD")
-    reduced_size = 50 #Can by changed as needed
+    reduced_size = 50 # Can by changed as needed
     lsa = TruncatedSVD(reduced_size, algorithm='randomized')
     svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
-    svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) #copy=false to perform in place normalization, useful on larger dataset
+    svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) # copy=false to perform in place normalization, useful on larger dataset
     sim_matrix = svd_matrix.dot(svd_matrix.T)
     svdEnd = time.time()
     print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
-    ##end SVD
+    # end SVD
 
     saveDataStart = time.time()
 
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
-    data['sim_matrix'] = sim_matrix.tolist()
+    data['svd_matrix'] = svd_matrix.tolist()
     data['unique_ids'] = unique_ids
     data['cities'] = cities
 
     with open('jsons/kardashian-transcripts.json', 'w') as fp:
         json.dump(data, fp)
+    with open('jsons/svd_matrix.json', 'w') as fp:
+        json.dump(svd_matrix.tolist(), fp)
 
     saveDataEnd = time.time()
     print("Saving preprocessed data took " + str(saveDataEnd - saveDataStart) + " seconds\n")
 
     end = time.time()
     print("Preprocessing took: " + str(end - start) + " seconds")
+
+
+def load_precomputed_svds():
+    with open('jsons/kardashian-transcripts.json') as fp:
+        data = json.load(fp)
+    with open('business_id_to_name.json') as fp:
+        business_id_to_name = json.load(fp)
+    return np.array(data["svd_matrix"]), np.array(data['unique_ids']), business_id_to_name
 
 
 if __name__ == "__main__":
@@ -295,5 +320,7 @@ if __name__ == "__main__":
     # n_feats = 5000
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
-
-    gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    
+    # gen_data_file() # Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    mtx, unique_ids, business_id_to_name = load_precomputed_svds()
+    map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name)
