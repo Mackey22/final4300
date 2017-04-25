@@ -5,6 +5,31 @@ import numpy as np
 import Levenshtein
 from collections import defaultdict
 from helpers import sort_dict_by_val
+import requests
+
+
+#YELP API
+app_id ='xGJw03IyUyyPy4XuNn4h_A'
+app_secret = 'HfiPbyE1t1tzH7NkEJ5e1kcG157gw1uQ15BX4YhiQCpJjHyAR34T3AUuP1aU2nz9'
+data = {'grant_type': 'client_credentials',
+        'client_id': app_id,
+        'client_secret': app_secret}
+token = requests.post('https://api.yelp.com/oauth2/token', data=data)
+access_token = token.json()['access_token']       
+url = 'https://api.yelp.com/v3/businesses/search'
+headers = {'Authorization': 'bearer %s' % access_token}
+
+
+def api_business_info(business_name, location):
+    params = {'location': location,
+          'term': business_name,
+         }
+    url = 'https://api.yelp.com/v3/businesses/search'
+    # url = 'https://api.yelp.com/v3/businesses/' + business_name + "-" + location + "/reviews"
+    resp = requests.get(url=url, params=params, headers=headers)
+    top_business = resp.json()['businesses'][0]
+    return top_business
+
 
 
 def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
@@ -19,8 +44,19 @@ def find_most_similar(sim_matrix, unique_ids, business_id_to_name, id1, k=5):
     max_indices = np.argpartition(rel_row, -k)[-k:]
     most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
     most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
+    # id -> (name,city,state)
+    res = []
+    for score, info in most_similar_scores_and_ids:
+        name = info[0]
+        city = info[1]
+        state = info[2]
+        location = city + " " + state
+        extra_info = api_business_info(name,location)
+        res.append((score,extra_info))
+    return res
 
-    return most_similar_scores_and_ids
+
+    # return most_similar_scores_and_ids
 
 
 def get_ordered_cities():
