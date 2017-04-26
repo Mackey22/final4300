@@ -1,19 +1,38 @@
 <html>
     <head>
+        <script src="/static/jquery-3.2.1.min.js"></script>
+        <script src="/static/bootstrap.min.js"></script>
         <link rel="stylesheet" href="/static/bootstrap.min.css">
         <link rel="stylesheet" href="/static/main.css">
+        <link href="/static/sticky-footer.css" rel="stylesheet">
     </head>
     
     <body>
-    <p><u>App Versions:</u><br><a href='https://yelp-retrieval-1.herokuapp.com/pt/'>Prototype 1</a><br>
-    <a href='https://yelp-retrieval-2.herokuapp.com/pt/'>Prototype 2</a><br>
-    <a href='https://yelp-retrieval.herokuapp.com/pt/'>Final Version</a>
-    </p>
-        <!-- TODO: Please change lines 10 and 11 according to your actual project name and student names-->
-        <div class="topcorner">
-            <p>Yelp Retrieval</p>
-            <p>Kyle Albany (kja56), Andrew Bales (apb224), James Mackey (jjm447)</p>
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Yelp 0.9</a>
         </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav navbar-right">
+          <ul class="nav navbar-nav">
+            <li><a href="https://yelp-retrieval-1.herokuapp.com/pt/">V1</a></li>
+            <li class="active"><a href="#">V2 <span class="sr-only">(current)</span></a></li>
+            <li><a href="https://yelp-retrieval.herokuapp.com/pt/">Final</a></li>
+          </ul>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+        </nav>
         
         <form class="form-inline global-search" method='GET'>
             <h1 style="font-size: 55px; font-family:Futura; color: #4285F4">
@@ -85,5 +104,10 @@
                 </span>
             </div>
         </div>
+        <footer class="footer">
+          <div class="container">
+            <p class="text-muted">Made by Kyle Albany (kja56), Andrew Bales (apb224), and James Mackey (jjm447).</p>
+          </div>
+        </footer>
     </body>
 </html>
