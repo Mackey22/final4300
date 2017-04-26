@@ -110,6 +110,7 @@ def find_similar(query,origin,destination):
     destination = destination.lower()
     query = query.lower() # business_name_to_id.json has all business names in lower case
     topMatches, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
+    bestMatchKey = ''
     if query in business_name_to_id:
         bid = business_name_to_id[query][0]
         lists = business_name_to_id[query]
