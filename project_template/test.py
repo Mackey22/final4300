@@ -77,7 +77,7 @@ def get_ordered_cities():
     #Deal with Montréal and other accent problems here
     for i in range(len(data)):
         data[i] = data[i].replace(u'\xe9', 'e')
-    return sorted(data[:10]), sorted(data)
+    return sorted(data[:10]), (["Search in all cities"] + sorted(data))
 
 
 def read(n):
