@@ -35,20 +35,25 @@ def api_business_info(business_name, location):
 
 
 
-def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, k=5):
+# k is number of results to display
+def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity, k=5):
     """
     Find most similar restaurants to the given restaurant id.
 
     Accepts: similarity matrix of restauranst, restaurant id.
     Returns: list of (score, restaurant name) tuples for restaurant with id1 sorted by cosine_similarity score
     """
-    rel_index = unique_ids.index(id1)
+    #rel_index = unique_ids.index(id1)
     #rel_row = sim_matrix[rel_index]
-    topMatchesRow = topMatches[rel_index]
+    #print "rel_index: "
+    #print rel_index
+    #print "destCity: "
+    #print destCity
+    topMatchesRow = topMatches[id1][destCity]
     #max_indices = np.argpartition(rel_row, -k)[-k:]
     #most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
     #most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
-    most_similar_ids = [business_id_to_name[unique_ids[x]] for x in topMatchesRow][:k]
+    most_similar_ids = [business_id_to_name[x] for x in topMatchesRow][:k]
     # id -> (name,city,state)
     res = []
     for info in most_similar_ids:
@@ -98,20 +103,20 @@ def read_file(n):
 # responds to request
 def find_similar(query,origin,destination):
     print origin,destination
-    originCity = origin.lower()
-    destCity = destination.lower()
+    origin = origin.lower()
+    destination = destination.lower()
     query = query.lower() # business_name_to_id.json has all business names in lower case
     topMatches, unique_ids, business_id_to_name, business_name_to_id = read_file(1)
     if query in business_name_to_id:
         bid = business_name_to_id[query][0]
         lists = business_name_to_id[query]
         for i in range(len(lists[0])):
-            if lists[1][i] == originCity:
+            if lists[1][i] == origin:
                 bid = lists[0][i]
                 break
         # This if/else block is to deal with the unique_ids problem. Remove it later on
         if bid in unique_ids:
-            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid)
+            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination)
         else:
             minDist = 999999
             # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -127,7 +132,7 @@ def find_similar(query,origin,destination):
                     bestMatchKey = name
                     bestMatchBid = bid
             bid = bestMatchBid
-            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid)
+            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination)
     else:
         minDist = 999999
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -144,14 +149,14 @@ def find_similar(query,origin,destination):
                 bestMatchBid = bid
         # This code should work once we're using the complete dataset. But commented out and using simpler version for now for prototype
         # for key, value in business_name_to_id.iteritems():
-        #     if originCity in value[1]:
-        #         idx = value[1].indexOf(originCity)
+        #     if origin in value[1]:
+        #         idx = value[1].indexOf(origin)
         #         dist = Levenshtein.distance(query, key)
         #         if dist < minDist:
         #             minDist = dist
         #             bestMatchKey = key
         #             bestMatchBid = value[0][i]
         bid = bestMatchBid
-        result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid)
+        result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination)
 
     return result, bestMatchKey

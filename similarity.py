@@ -221,10 +221,16 @@ def gen_business_name_to_id(cutoff, minReviews):
 # Have to update this to do it based on dest city
 def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, numToFind):
     print "Creating map from city -> restaurant -> top sim restaurants"
+    destCities = ['charlotte', 'henderson', 'las vegas', 'mesa', 'montreal', 'phoenix', 'pittsburgh', 'scottsdale', 'tempe', 'toronto']
+    topMatchDict = {}
     topRestStart = time.time()
     n, d = svd_matrix.shape
     topMatchMat = np.zeros((n, numToFind), dtype=int)
     for i in range(n):
+        topMatchDict[unique_ids[i]] = {}
+        for city in destCities:
+            topMatchDict[unique_ids[i]][city] = []
+        dictItems = 0 # So we can break when dict has all the necessary entries for a restaurant
         restaurant_to_mult = svd_matrix[i]
         one_restaurant_similarity = np.dot(svd_matrix, restaurant_to_mult)
         # print svd_matrix.shape, restaurant_to_mult.shape, one_restaurant_similarity.shape
@@ -233,15 +239,23 @@ def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, n
         # print "Indices", ordered_indices[0, :20]
         #print "Ordered Scores", one_restaurant_similarity[ordered_indices][1:numToFind+1]
         #print ordered_indices
-        topMatchMat[i] = ordered_indices[1:numToFind+1]
+        for idx in ordered_indices:
+            city = business_id_to_name[unique_ids[idx]][1]
+            if city in topMatchDict[unique_ids[i]] and len(topMatchDict[unique_ids[i]][city])<numToFind:
+                topMatchDict[unique_ids[i]][city].append(unique_ids[idx])
+                dictItems += 1
+                if dictItems >= numToFind*len(destCities):
+                    break
+
+        #topMatchMat[i] = ordered_indices[1:numToFind+1]
     #print topMatchMat
     topRestEnd = time.time()
     print("Mapping restaurants to top similar took: " + str(topRestEnd - topRestStart) + " seconds\n")
-    return topMatchMat
+    return topMatchDict
 
 
 # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
-def gen_data_file(minReviews=25, cutoff=300, reduced_size=50, n_feats=5000, topNToFind=10):
+def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, topNToFind=10):
     start = time.time()
     #minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
     #cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
@@ -290,14 +304,14 @@ def gen_data_file(minReviews=25, cutoff=300, reduced_size=50, n_feats=5000, topN
     # end SVD
 
     #topNToFind = 10 # Find top 10 most similar restaurants
-    topMatches = map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, topNToFind)
+    topMatchDict = map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, topNToFind)
 
     saveDataStart = time.time()
 
     data = {}
     data['business_id_to_name'] = business_id_to_name
     data['business_name_to_id'] = business_name_to_id
-    data['topMatches'] = topMatches.tolist()
+    data['topMatches'] = topMatchDict
     data['unique_ids'] = unique_ids
     data['cities'] = cities
 
@@ -331,7 +345,7 @@ if __name__ == "__main__":
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-    gen_data_file(minReviews=25, cutoff=300, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    gen_data_file(minReviews=25, cutoff=500, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
     #mtx, unique_ids, business_id_to_name = load_precomputed_svds()
     #topNToFind = 10 # Find top 10 most similar restaurants
     #map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
