@@ -9,7 +9,6 @@ padding: 20px 0;
 text-align:center;
 }
 body {
-padding-top: 15%;
 padding-bottom: 15px;
 }
 .global-search {
@@ -24,6 +23,9 @@ display:inline-block;
 margin-bottom:0;
 }
 }
+
+.
+
 .topcorner{
 position:absolute;
 top:2%;
