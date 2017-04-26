@@ -54,15 +54,28 @@ from django.utils.html import format_html, mark_safe
 #    }
 # }
 
+def string_cats(cats):
+  res = "Categories: "
+  for c in cats:
+    res += c['title']+", "
+  return res
+
+def string_obj(obj):
+  res = "Location: "
+  for c in obj:
+    res += c + " "
+  return res
+
 def gen_table(output_list):
 
   s = []
-  # "<table border=1><tr><td>Hello</td></tr><tr><td>Goodbye</td></tr></table>"
   for obj in output_list:
-    s2 = "<table width=90%>"
+    s2 = "<table width=90%"
     s2 += "<tr><td><img src='" + obj['image_url']  + "' height=100 width=100></img>" + "</td>"
     s2 += "<td><a href='" + obj['url'] + "'>" + obj['name'] + "</a></td></tr>"
-    s2 += "<tr><td>  " + str(obj['rating']) + " stars</td></tr>"
+    s2 += "<tr><td>" + str(obj['rating']) + " stars</td></tr>"
+    s2 += "<tr><td>" + string_cats(obj['categories']) + "</td></tr>"
+    s2 += "<tr><td>" + string_obj(obj['location']['display_address']) + "</td></tr>"
     s2 += "</table><br><br>"
     s.append(format_html("{}", mark_safe(s2)))
 
