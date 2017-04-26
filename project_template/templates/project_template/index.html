@@ -60,9 +60,13 @@
                 {{line}}<br>
             {% endfor %}
 
-            {% for line in output %}
-                {{line}}<br>
+
+
+            {% for jsonObj in output %}
+                {{jsonObj}}
             {% endfor %}
+
+
             
             <div class="pagination">
                 <span class="step-links">
