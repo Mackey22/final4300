@@ -21,6 +21,9 @@ headers = {'Authorization': 'bearer %s' % access_token}
 
 
 def api_business_info(business_name, location):
+    #remove apostrophes and spaces to avoid errors in api call
+    business_name = business_name.replace("'","")
+    location = location.replace("'","")
     params = {'location': location,
           'term': business_name,
          }
