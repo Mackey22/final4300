@@ -275,7 +275,7 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T)
 		print("one_restaurant_similarity shape is " + str(one_restaurant_similarity.shape))
 		print(one_restaurant_similarity)
-		ordered_indices = np.argsort(one_restaurant_similarity)
+		ordered_indices = np.argsort(one_restaurant_similarity, axis=1)
 		print("ordered_indices is " + str(ordered_indices))
 		# print "Indices", ordered_indices[0, :20]
 		#print "Ordered Scores", one_restaurant_similarity[ordered_indices][1:numToFind+1]
