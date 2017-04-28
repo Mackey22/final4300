@@ -61,13 +61,13 @@ def get_reviews_and_ids(maxNum, minReviews):
 	loadReviewsStart = time.time()
 	with open('jsons/restaurant_categories.json') as data_file:
 		valid_categories = set(json.load(data_file))
-	loadReviewsEnd = time.time()
-	print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
 	#print("Number of businesses in file to iterate through: " + str(len(data)))
 	reviewMapStart = time.time()
 	category_map = {}
 	with open('jsons/reviews.json') as data_file:
 		data = json.load(data_file)
+	loadReviewsEnd = time.time()
+	print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
 	badCategoryResults = 0
 	duplicateNameCounts = 0
 	for key in data:
@@ -78,12 +78,12 @@ def get_reviews_and_ids(maxNum, minReviews):
 					if category not in valid_categories:
 						badCategory = True
 						break
-			if not badCategory:
-				count += 1
-				reviews_map[key] = data[key]['reviews']
-				category_map[key] = data[key]['data']['categories']
-			else:
-				badCategoryResults += 1
+				if not badCategory:
+					count += 1
+					reviews_map[key] = data[key]['reviews']
+					category_map[key] = data[key]['data']['categories']
+				else:
+					badCategoryResults += 1
 			if count >= maxNum:
 				break
 		else:
@@ -203,37 +203,55 @@ def get_ordered_cities():
 
 def gen_business_id_to_name(cutoff, minReviews):
 	"""Return Dict - maps business id to business name."""
+	with open('jsons/restaurant_categories.json') as data_file:
+		valid_categories = set(json.load(data_file))
 	business_id_to_name = defaultdict(str)
 	with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
 		count = 0
 		for line in data_file:
+			badCategory = False
 			data = (json.loads(line))
 			if int(data['review_count']) >= minReviews:
-				count += 1
-				business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
-				if count > cutoff:
-					break
+				if data['categories'] != None:
+					for category in data['categories']:
+						if category not in valid_categories:
+							badCategory = True
+							break
+					if not badCategory:
+						business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
+						count += 1
+						if count > cutoff:
+							break
 	with open('business_id_to_name.json', 'w') as fp:
 		json.dump(business_id_to_name, fp)
 
 
 def gen_business_name_to_id(cutoff, minReviews):
 	"""Return Dict - maps business names to business ids."""
+	with open('jsons/restaurant_categories.json') as data_file:
+		valid_categories = set(json.load(data_file))
 	business_name_to_id = defaultdict(str)
 	with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
 		count = 0
 		for line in data_file:
 			data = (json.loads(line))
+			badCategory = False
 			if int(data['review_count']) >= minReviews:
-				count += 1
-				if data['name'].lower() in business_name_to_id:
-					business_name_to_id[data['name'].lower()][0].append(data['business_id'])
-					business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
-					business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
-				else:
-					business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
-				if count > cutoff:
-					break
+				if data['categories'] != None:
+					for category in data['categories']:
+						if category not in valid_categories:
+							badCategory = True
+							break
+					if not badCategory:
+						if data['name'].lower() in business_name_to_id:
+							business_name_to_id[data['name'].lower()][0].append(data['business_id'])
+							business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
+							business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
+						else:
+							business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
+						count += 1
+						if count > cutoff:
+							break
 	with open('business_name_to_id.json', 'w') as fp:
 		json.dump(business_name_to_id, fp)
 
@@ -245,13 +263,16 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 	topRestStart = time.time()
 	n, d = restaurant_by_vocab_matrix.shape
 	topMatchMat = np.zeros((n, numToFind), dtype=int)
+	numDone = 0
 	for i in range(n):
 		topMatchDict[unique_ids[i]] = {}
 		for city in destCities:
 			topMatchDict[unique_ids[i]][city] = []
 		dictItems = 0 # So we can break when dict has all the necessary entries for a restaurant
 		restaurant_to_mult = restaurant_by_vocab_matrix[i]
-		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult)
+		#print("restaurant_by_vocab_matrix shape is " + str(restaurant_by_vocab_matrix.shape))
+		#print("restaurant_to_mult shape is " + str(restaurant_to_mult.shape))
+		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T)
 		# print svd_matrix.shape, restaurant_to_mult.shape, one_restaurant_similarity.shape
 
 		ordered_indices = np.argsort(one_restaurant_similarity)[::-1]
@@ -265,6 +286,9 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 				dictItems += 1
 				if dictItems >= numToFind*len(destCities):
 					break
+		numDone += 1
+		if numDone % 500 == 0:
+			print("Mapped %.2f restaurants to top similar so far" % numDone)
 
 		#topMatchMat[i] = ordered_indices[1:numToFind+1]
 	#print topMatchMat
@@ -296,6 +320,7 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	get_reviews_end = time.time()
 	print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
 	#n_feats = 5000
+	print("starting tfidf_vec.fit_transform()")
 	tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
 	fit_transform_start = time.time()
 	restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
@@ -365,7 +390,7 @@ if __name__ == "__main__":
 	# tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
 	# restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-	gen_data_file(minReviews=10, cutoff=100000, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+	gen_data_file(minReviews=10, cutoff=1000, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
 	#mtx, unique_ids, business_id_to_name = load_precomputed_svds()
 	#topNToFind = 10 # Find top 10 most similar restaurants
 	#map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
