@@ -53,6 +53,7 @@ from django.utils.html import format_html, mark_safe
 #       u'zip_code':u'M5G 1H1'
 #    }
 # }
+##url for reviews: # https://api.yelp.com/v3/businesses/{id}/reviews
 
 def string_cats(cats):
   res = "Categories: "
@@ -67,7 +68,7 @@ def string_obj(obj):
   return res
 
 def gen_table(output_list):
-
+  """Return list of strings each formatted as html table"""
   s = []
   for obj in output_list:
     s2 = "<table width=90%"
@@ -81,7 +82,32 @@ def gen_table(output_list):
 
   return s
 
-# https://api.yelp.com/v3/businesses/{id}/reviews
+
+def gen_category_list(output_list):
+  """return list of unique categories"""
+  categories= set()
+  for rest in output_list:
+    cats = rest['categories']
+    for c in cats:
+      categories.add(c['title'])
+  return sorted(list(categories))
+
+def set_cats(obj):
+  return set([c['title'] for c in obj['categories']])
+
+def sort_by_category(output_list, chosen_categories):
+  """return restaurant list sorted by jaccard similarity of categories"""
+
+  rest_scores = []
+  for restaurant in output_list:
+    cur_cats = set_cats(restaurant)
+    all_cats = set(chosen_categories)
+    score = len(cur_cats.intersection(all_cats)) / float(len(cur_cats.union(all_cats)))
+    rest_scores.append((restaurant, score))
+
+  rest_scores = sorted(rest_scores,key=lambda x:-x[1])
+
+  return [res_score[0] for res_score in rest_scores]
 
 
 def index(request):
@@ -93,6 +119,8 @@ def index(request):
     dest = ''
     search = ''
     best_match = ''
+
+    #GET ALL INPUT VALUES
     if request.GET.get('search'):
         search = request.GET.get('search')
         if request.GET.get('home'):
@@ -100,10 +128,15 @@ def index(request):
           if request.GET.get('dest'):
             dest = request.GET.get('dest')
             output_list, best_match = find_similar(search, origin, dest)
-            #create table of results
+
+            #IF CATEGORIES SELECTED, FILTER BY JACC SIM
+            if request.GET.get('categories'):
+              chosen_categories = request.GET.getlist('categories')
+              output_list = sort_by_category(output_list, chosen_categories)
+
+            #CREATE TABLE OF RESULTS
             output_html = gen_table(output_list)
-            output_list = output_html
-            paginator = Paginator(output_list, 10)
+            paginator = Paginator(output_html, 10)
             page = request.GET.get('page')
             try:
                 output = paginator.page(page)
@@ -116,8 +149,9 @@ def index(request):
                            'home_cities': home_cities,
                            "dest_cities": dest_cities,
                            'magic_url': request.get_full_path(),
-                           'origin': ["Origin City: " + origin],
-                           'dest': ["Destination City: " + dest],
-                           'query': ["You searched: " + search],
-                           'best_match': ["Best match was: " + best_match]
+                           'origin': origin,
+                           'dest': dest,
+                           'query': search,
+                           'best_match': best_match,
+                           'categories': gen_category_list(output_list)
                            })

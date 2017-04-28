@@ -34,7 +34,7 @@
         </div><!-- /.container-fluid -->
         </nav>
         
-        <form class="form-inline global-search" method='GET'>
+        <form class="form-inline global-search" method='GET' id="search">
             <h1 style="font-size: 55px; font-family:Futura; color: #4285F4">
                YELP 0.9
             </h1>
@@ -57,36 +57,33 @@
                 </select>
             </div>
             <button type="submit" class="btn btn-info"> Go! </button>
-        </form>
-        
+
         <div class="form-inline global-search">
             <h4>Output</h4><br><br>
-            <!-- display origin, dest, initial query, and restaurant most similar to query -->
 
-            {% for line in query %}
-                {{line}}<br>
-            {% endfor %}
+            <!-- save previous search values -->
+            <input type="hidden" id="savedInput" name="savedInput" value="{{query}}">
+             <input type="hidden" id="savedMatch" name="savedMatch" value="{{best_match}}">
+            <input type="hidden" id="savedDest" name="savedDest" value="{{dest}}">
+            <input type="hidden" id="savedOrigin" name="savedOrigin" value="{{origin}}">
 
-            {% for line in best_match %}
-                {{line}}<br>
-            {% endfor %}
+            <h4> You searched for: {{query}}<br> Best match was {{best_match}} </h4>
 
-            {% for line in origin %}
-                {{line}}<br>
-            {% endfor %}
-
-            {% for line in dest %}
-                {{line}}<br>
+            <!-- Display categories -->
+            <legend>Filter further by category</legend>
+            {% for opt in categories %}
+                <input type="checkbox" class = "categories" name="categories" id="categories" value="{{opt}}" /> {{opt}} <br/>
             {% endfor %}
 
 
-
+            <!-- Display restaurant esults  -->
             {% for jsonObj in output %}
                 {{jsonObj}}
             {% endfor %}
 
+            </form>
 
-            
+           
             <div class="pagination">
                 <span class="step-links">
                     {% if output.has_previous %}
@@ -104,6 +101,20 @@
                 </span>
             </div>
         </div>
+
+        <script type="text/javascript"> 
+        //Display saved results from previous search
+        
+        // var savedInput = document.getElementById("savedInput").value;
+        // document.getElementById('input').value = savedInput
+        var savedMatch = document.getElementById("savedMatch").value;
+        document.getElementById('input').value = savedMatch;
+        var savedDest = document.getElementById("savedDest").value;
+        document.getElementById('destination').value = savedDest;
+        var savedOrigin= document.getElementById("savedOrigin").value;
+        document.getElementById('home').value = savedOrigin
+        </script> 
+
         <footer class="footer">
           <div class="container">
             <p class="text-muted">Made by Kyle Albany (kja56), Andrew Bales (apb224), and James Mackey (jjm447).</p>
