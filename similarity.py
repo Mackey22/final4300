@@ -59,24 +59,42 @@ def get_reviews_and_ids(maxNum, minReviews):
     filteredBusinesses = 0
     print("\nIn get_reviews_and_ids")
     loadReviewsStart = time.time()
-    with open('jsons/reviews.json') as data_file:
-        data = json.load(data_file)
+    with open('jsons/restaurant_categories.json') as data_file:
+        valid_categories = set(json.load(data_file))
     loadReviewsEnd = time.time()
     print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
     #print("Number of businesses in file to iterate through: " + str(len(data)))
     reviewMapStart = time.time()
+    with open('jsons/try1.json') as data_file:
+        data = json.load(data_file)
+    badCategoryResults = 0
     for key in data:
+    	badCategory = False 		# Keep track of if a non-food category was found
         if int(data[key]['review_count']) >= minReviews:
-            count += 1
-            reviews_map[key] = data[key]['reviews']
+        	if data[key]['data']['categories'] != None:
+            	for category in data[key]['data']['categories']:
+            		if category not in valid_categories:
+            			badCategory = True
+            			break
+            if not badCategory:
+            	count += 1
+            	reviews_map[key] = data[key]['reviews']
+            else:
+            	badCategoryResults += 1
+
+
             if count >= maxNum:
                 break
         else:
             filteredBusinesses += 1
+    with open('jsons/business_categories.json', 'w') as fp:
+        json.dump(list(categories), fp)
+
     reviewMapEnd = time.time()
     print ("Created review map in " + str(reviewMapEnd - reviewMapStart) + " seconds\n")
-    print("Included " + str(count) + " businesses, filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
-
+    print("Included " + str(count) + " businesses")
+    print("Filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
+    print("Filtered out " + str(badCategoryResults) + " businesses that had non-food categories")
     ordered_business_ids = []
     ordered_reviews = []
 
@@ -345,7 +363,7 @@ if __name__ == "__main__":
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-    gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    gen_data_file(minReviews=10, cutoff=5000, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
     #mtx, unique_ids, business_id_to_name = load_precomputed_svds()
     #topNToFind = 10 # Find top 10 most similar restaurants
     #map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
