@@ -272,12 +272,12 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 		restaurant_to_mult = restaurant_by_vocab_matrix[i]
 		print("restaurant_by_vocab_matrix shape is " + str(restaurant_by_vocab_matrix.shape))
 		print("restaurant_to_mult shape is " + str(restaurant_to_mult.shape))
-		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T)
+		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T).T
 		print("one_restaurant_similarity shape is " + str(one_restaurant_similarity.shape))
 		print(one_restaurant_similarity)
-		ordered_indices = np.argsort(one_restaurant_similarity, axis=1)
+		ordered_indices = np.argsort(one_restaurant_similarity)
 		print("ordered_indices is " + str(ordered_indices))
-		# print "Indices", ordered_indices[0, :20]
+		print "Indices", ordered_indices[0]
 		#print "Ordered Scores", one_restaurant_similarity[ordered_indices][1:numToFind+1]
 		#print ordered_indices
 		for idx in ordered_indices:
