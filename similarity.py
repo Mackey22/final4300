@@ -65,6 +65,7 @@ def get_reviews_and_ids(maxNum, minReviews):
 	print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
 	#print("Number of businesses in file to iterate through: " + str(len(data)))
 	reviewMapStart = time.time()
+	category_map = {}
 	with open('jsons/reviews.json') as data_file:
 		data = json.load(data_file)
 	badCategoryResults = 0
@@ -80,6 +81,7 @@ def get_reviews_and_ids(maxNum, minReviews):
 			if not badCategory:
 				count += 1
 				reviews_map[key] = data[key]['reviews']
+				category_map[key] = data[key]['data']['categories']
 			else:
 				badCategoryResults += 1
 			if count >= maxNum:
@@ -95,14 +97,16 @@ def get_reviews_and_ids(maxNum, minReviews):
 
 	ordered_business_ids = []
 	ordered_reviews = []
+	ordered_business_categories = []
 
 	orderedReviewsStart = time.time()
 	for ID,reviews in reviews_map.iteritems():
 		ordered_business_ids.append(ID)
 		ordered_reviews.append(reviews)
+		ordered_business_categories.append(category_map[ID])
 	orderedReviewsEnd = time.time()
 	print ("Ordered businesses & reviews in " + str(orderedReviewsEnd - orderedReviewsStart) + " seconds\n")
-	return ordered_business_ids, ordered_reviews
+	return ordered_business_ids, ordered_reviews, ordered_business_categories
 
 
 def prune_json(n):
@@ -288,7 +292,7 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	sim_mat_start = time.time()
 	cities = get_ordered_cities()
 	get_reviews_start = time.time()
-	unique_ids, reviews = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
+	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
 	get_reviews_end = time.time()
 	print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
 	#n_feats = 5000
@@ -328,6 +332,7 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	data['business_name_to_id'] = business_name_to_id
 	data['topMatches'] = topMatchDict
 	data['unique_ids'] = unique_ids
+	data['ordered_business_categories'] = ordered_business_categories
 	data['cities'] = cities
 
 	with open('jsons/kardashian-transcripts.json', 'w') as fp:
