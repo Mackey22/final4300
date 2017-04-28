@@ -238,20 +238,20 @@ def gen_business_name_to_id(cutoff, minReviews):
 		json.dump(business_name_to_id, fp)
 
 # Have to update this to do it based on dest city
-def map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, numToFind):
+def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, numToFind):
 	print "Creating map from city -> restaurant -> top sim restaurants"
 	destCities = ['charlotte', 'henderson', 'las vegas', 'mesa', 'montreal', 'phoenix', 'pittsburgh', 'scottsdale', 'tempe', 'toronto']
 	topMatchDict = {}
 	topRestStart = time.time()
-	n, d = svd_matrix.shape
+	n, d = restaurant_by_vocab_matrix.shape
 	topMatchMat = np.zeros((n, numToFind), dtype=int)
 	for i in range(n):
 		topMatchDict[unique_ids[i]] = {}
 		for city in destCities:
 			topMatchDict[unique_ids[i]][city] = []
 		dictItems = 0 # So we can break when dict has all the necessary entries for a restaurant
-		restaurant_to_mult = svd_matrix[i]
-		one_restaurant_similarity = np.dot(svd_matrix, restaurant_to_mult)
+		restaurant_to_mult = restaurant_by_vocab_matrix[i]
+		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult)
 		# print svd_matrix.shape, restaurant_to_mult.shape, one_restaurant_similarity.shape
 
 		ordered_indices = np.argsort(one_restaurant_similarity)[::-1]
@@ -307,23 +307,23 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	# sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
 	# gen_sim_matrix_end = time.time()
 	# print ("finished gen_sim_matrix in " + str(gen_sim_matrix_end - gen_sim_matrix_start) + " seconds\n")
-	sim_mat_end = time.time()
-	print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
+	# sim_mat_end = time.time()
+	# print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
 
 	# perform SVD
-	svdStart = time.time()
-	print ("starting SVD")
-	#reduced_size = 50 # Can by changed as needed
-	lsa = TruncatedSVD(reduced_size, algorithm='randomized')
-	svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
-	svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) # copy=false to perform in place normalization, useful on larger dataset
-	sim_matrix = svd_matrix.dot(svd_matrix.T)
-	svdEnd = time.time()
-	print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
+	# svdStart = time.time()
+	# print ("starting SVD")
+	# #reduced_size = 50 # Can by changed as needed
+	# lsa = TruncatedSVD(reduced_size, algorithm='randomized')
+	# svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
+	# svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) # copy=false to perform in place normalization, useful on larger dataset
+	# sim_matrix = svd_matrix.dot(svd_matrix.T)
+	# svdEnd = time.time()
+	# print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
 	# end SVD
 
 	#topNToFind = 10 # Find top 10 most similar restaurants
-	topMatchDict = map_restaurant_to_top_similar(svd_matrix, unique_ids, business_id_to_name, topNToFind)
+	topMatchDict = map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, topNToFind)
 
 	saveDataStart = time.time()
 
