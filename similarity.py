@@ -283,8 +283,8 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 		#one_restaurant_similarity = np.dot(restaurant_to_mult, restaurant_by_vocab_matrix.T)
 		fixedList = (one_restaurant_similarity.toarray()).flatten()
 		ordered_indices = np.argsort(fixedList)[::-1]
-		print('\n\n----------------------------------------------\n\n')
-		print("Finding matches for: " + str(business_id_to_name[unique_ids[i]]))
+		#print('\n\n----------------------------------------------\n\n')
+		#print("Finding matches for: " + str(business_id_to_name[unique_ids[i]]))
 		for idx in ordered_indices:
 			if idx == i:
 				continue
@@ -292,7 +292,7 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 			if city in topMatchDict[unique_ids[i]] and len(topMatchDict[unique_ids[i]][city])<numToFind:
 				topMatchDict[unique_ids[i]][city].append(unique_ids[idx])
 				dictItems += 1
-				print("Added " + str(business_id_to_name[unique_ids[idx]]) + " to relevant match list")
+				#print("Added " + str(business_id_to_name[unique_ids[idx]]) + " to relevant match list")
 				if dictItems >= numToFind*len(destCities):
 					break
 		numDone += 1
