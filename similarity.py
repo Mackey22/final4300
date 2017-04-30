@@ -51,7 +51,7 @@ def gen_business_id_to_name():
 #     return ordered_business_ids, ordered_reviews
 
 
-def get_reviews_and_ids(maxNum, minReviews):
+def get_reviews_and_ids(maxNum, minReviews, business_id_to_name):
 	"""Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
 	reviews_map = defaultdict(str)
 	count = 0
@@ -71,23 +71,32 @@ def get_reviews_and_ids(maxNum, minReviews):
 	badCategoryResults = 0
 	duplicateNameCounts = 0
 	for key in data:
-		badCategory = False 		# Keep track of if a non-food category was found
-		if int(data[key]['review_count']) >= minReviews:
-			if data[key]['data']['categories'] != None:
-				for category in data[key]['data']['categories']:
-					if category not in valid_categories:
-						badCategory = True
-						break
-				if not badCategory:
-					count += 1
-					reviews_map[key] = data[key]['reviews']
-					category_map[key] = data[key]['data']['categories']
-				else:
-					badCategoryResults += 1
-			if count >= maxNum:
-				break
+		# Instead of checking conditions for the business again, just see if it is in business_id_to_name dict, where the conditions were already checked
+		if key in business_id_to_name:
+			count += 1
+			reviews_map[key] = data[key]['reviews']
+			category_map[key] = data[key]['data']['categories']
 		else:
 			filteredBusinesses += 1
+		if count >= maxNum:
+			break
+		# badCategory = False 		# Keep track of if a non-food category was found
+		# if int(data[key]['review_count']) >= minReviews:
+		# 	if data[key]['data']['categories'] != None:
+		# 		for category in data[key]['data']['categories']:
+		# 			if category not in valid_categories:
+		# 				badCategory = True
+		# 				break
+		# 		if not badCategory:
+		# 			count += 1
+		# 			reviews_map[key] = data[key]['reviews']
+		# 			category_map[key] = data[key]['data']['categories']
+		# 		else:
+		# 			badCategoryResults += 1
+		# 	if count >= maxNum:
+		# 		break
+		# else:
+		# 	filteredBusinesses += 1
 
 	reviewMapEnd = time.time()
 	print ("Created review map in " + str(reviewMapEnd - reviewMapStart) + " seconds\n")
@@ -281,7 +290,7 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 				if dictItems >= numToFind*len(destCities):
 					break
 		numDone += 1
-		print(business_id_to_name[unique_ids[i]])
+		#print(business_id_to_name[unique_ids[i]])
 		#print(topMatchDict[unique_ids[i]])
 		for key in topMatchDict[unique_ids[i]].keys():
 			print(key)
@@ -316,7 +325,7 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	sim_mat_start = time.time()
 	cities = get_ordered_cities()
 	get_reviews_start = time.time()
-	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
+	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews, business_name_to_id) # Also does filtering based on review count here
 	get_reviews_end = time.time()
 	print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
 	#n_feats = 5000
