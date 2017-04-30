@@ -51,7 +51,7 @@ def gen_business_id_to_name():
 #     return ordered_business_ids, ordered_reviews
 
 
-def get_reviews_and_ids(maxNum, minReviews):
+def get_reviews_and_ids(maxNum, minReviews, business_id_to_name):
 	"""Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
 	reviews_map = defaultdict(str)
 	count = 0
@@ -71,29 +71,38 @@ def get_reviews_and_ids(maxNum, minReviews):
 	badCategoryResults = 0
 	duplicateNameCounts = 0
 	for key in data:
-		badCategory = False 		# Keep track of if a non-food category was found
-		if int(data[key]['review_count']) >= minReviews:
-			if data[key]['data']['categories'] != None:
-				for category in data[key]['data']['categories']:
-					if category not in valid_categories:
-						badCategory = True
-						break
-				if not badCategory:
-					count += 1
-					reviews_map[key] = data[key]['reviews']
-					category_map[key] = data[key]['data']['categories']
-				else:
-					badCategoryResults += 1
-			if count >= maxNum:
-				break
+		# Instead of checking conditions for the business again, just see if it is in business_id_to_name dict, where the conditions were already checked
+		if key in business_id_to_name:
+			count += 1
+			reviews_map[key] = data[key]['reviews']
+			category_map[key] = data[key]['data']['categories']
 		else:
 			filteredBusinesses += 1
+		if count >= maxNum:
+			break
+		# badCategory = False 		# Keep track of if a non-food category was found
+		# if int(data[key]['review_count']) >= minReviews:
+		# 	if data[key]['data']['categories'] != None:
+		# 		for category in data[key]['data']['categories']:
+		# 			if category not in valid_categories:
+		# 				badCategory = True
+		# 				break
+		# 		if not badCategory:
+		# 			count += 1
+		# 			reviews_map[key] = data[key]['reviews']
+		# 			category_map[key] = data[key]['data']['categories']
+		# 		else:
+		# 			badCategoryResults += 1
+		# 	if count >= maxNum:
+		# 		break
+		# else:
+		# 	filteredBusinesses += 1
 
 	reviewMapEnd = time.time()
 	print ("Created review map in " + str(reviewMapEnd - reviewMapStart) + " seconds\n")
 	print("Included " + str(count) + " businesses")
-	print("Filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
-	print("Filtered out " + str(badCategoryResults) + " businesses that had non-food categories")
+	print("Filtered out " + str(filteredBusinesses) + " businesses with wrong categories or too few reviews")
+	#print("Filtered out " + str(badCategoryResults) + " businesses that had non-food categories")
 
 	ordered_business_ids = []
 	ordered_reviews = []
@@ -270,16 +279,9 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 			topMatchDict[unique_ids[i]][city] = []
 		dictItems = 0 # So we can break when dict has all the necessary entries for a restaurant
 		restaurant_to_mult = restaurant_by_vocab_matrix[i]
-		print("restaurant_by_vocab_matrix shape is " + str(restaurant_by_vocab_matrix.shape))
-		print("restaurant_to_mult shape is " + str(restaurant_to_mult.shape))
-		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T).T
-		print("one_restaurant_similarity shape is " + str(one_restaurant_similarity.shape))
-		print(one_restaurant_similarity)
-		ordered_indices = np.argsort(one_restaurant_similarity)
-		print("ordered_indices is " + str(ordered_indices))
-		print "Indices", ordered_indices[0]
-		#print "Ordered Scores", one_restaurant_similarity[ordered_indices][1:numToFind+1]
-		#print ordered_indices
+		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T)
+		fixedList = (one_restaurant_similarity.toarray()).flatten()
+		ordered_indices = np.argsort(fixedList)
 		for idx in ordered_indices:
 			city = business_id_to_name[unique_ids[idx]][1]
 			if city in topMatchDict[unique_ids[i]] and len(topMatchDict[unique_ids[i]][city])<numToFind:
@@ -288,13 +290,12 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 				if dictItems >= numToFind*len(destCities):
 					break
 		numDone += 1
-		print(business_id_to_name[unique_ids[i]])
+		#print(business_id_to_name[unique_ids[i]])
 		#print(topMatchDict[unique_ids[i]])
 		for key in topMatchDict[unique_ids[i]].keys():
-			print(key)
+			#print(key)
 			for val in topMatchDict[unique_ids[i]][key]:
 				print(business_id_to_name[val])
-		break
 		if numDone % 500 == 0:
 			print("Mapped %.2f restaurants to top similar so far" % numDone)
 
@@ -324,7 +325,7 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	sim_mat_start = time.time()
 	cities = get_ordered_cities()
 	get_reviews_start = time.time()
-	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews) # Also does filtering based on review count here
+	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews, business_id_to_name) # Also does filtering based on review count here
 	get_reviews_end = time.time()
 	print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
 	#n_feats = 5000
@@ -398,7 +399,7 @@ if __name__ == "__main__":
 	# tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
 	# restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-	gen_data_file(minReviews=10, cutoff=100, reduced_size=50, n_feats=5000, topNToFind=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+	gen_data_file(minReviews=10, cutoff=50000, reduced_size=50, n_feats=5000, topNToFind=100)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
 	#mtx, unique_ids, business_id_to_name = load_precomputed_svds()
 	#topNToFind = 10 # Find top 10 most similar restaurants
 	#map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
