@@ -101,8 +101,8 @@ def get_reviews_and_ids(maxNum, minReviews, business_id_to_name):
 	reviewMapEnd = time.time()
 	print ("Created review map in " + str(reviewMapEnd - reviewMapStart) + " seconds\n")
 	print("Included " + str(count) + " businesses")
-	print("Filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
-	print("Filtered out " + str(badCategoryResults) + " businesses that had non-food categories")
+	print("Filtered out " + str(filteredBusinesses) + " businesses with wrong categories or too few reviews")
+	#print("Filtered out " + str(badCategoryResults) + " businesses that had non-food categories")
 
 	ordered_business_ids = []
 	ordered_reviews = []
@@ -293,7 +293,7 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 		#print(business_id_to_name[unique_ids[i]])
 		#print(topMatchDict[unique_ids[i]])
 		for key in topMatchDict[unique_ids[i]].keys():
-			print(key)
+			#print(key)
 			for val in topMatchDict[unique_ids[i]][key]:
 				print(business_id_to_name[val])
 		if numDone % 500 == 0:
