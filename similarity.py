@@ -280,22 +280,28 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 		dictItems = 0 # So we can break when dict has all the necessary entries for a restaurant
 		restaurant_to_mult = restaurant_by_vocab_matrix[i]
 		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T)
+		#one_restaurant_similarity = np.dot(restaurant_to_mult, restaurant_by_vocab_matrix.T)
 		fixedList = (one_restaurant_similarity.toarray()).flatten()
-		ordered_indices = np.argsort(fixedList)
+		ordered_indices = np.argsort(fixedList)[::-1]
+		print('\n\n----------------------------------------------\n\n')
+		print("Finding matches for: " + str(business_id_to_name[unique_ids[i]]))
 		for idx in ordered_indices:
+			if idx == i:
+				continue
 			city = business_id_to_name[unique_ids[idx]][1]
 			if city in topMatchDict[unique_ids[i]] and len(topMatchDict[unique_ids[i]][city])<numToFind:
 				topMatchDict[unique_ids[i]][city].append(unique_ids[idx])
 				dictItems += 1
+				print("Added " + str(business_id_to_name[unique_ids[idx]]) + " to relevant match list")
 				if dictItems >= numToFind*len(destCities):
 					break
 		numDone += 1
 		#print(business_id_to_name[unique_ids[i]])
 		#print(topMatchDict[unique_ids[i]])
-		for key in topMatchDict[unique_ids[i]].keys():
-			#print(key)
-			for val in topMatchDict[unique_ids[i]][key]:
-				print(business_id_to_name[val])
+		# for key in topMatchDict[unique_ids[i]].keys():
+		# 	#print(key)
+		# 	for val in topMatchDict[unique_ids[i]][key]:
+		# 		print(business_id_to_name[val])
 		if numDone % 500 == 0:
 			print("Mapped %.2f restaurants to top similar so far" % numDone)
 
@@ -399,7 +405,7 @@ if __name__ == "__main__":
 	# tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
 	# restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-	gen_data_file(minReviews=10, cutoff=50000, reduced_size=50, n_feats=5000, topNToFind=100)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+	gen_data_file(minReviews=10, cutoff=500, reduced_size=50, n_feats=5000, topNToFind=5)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
 	#mtx, unique_ids, business_id_to_name = load_precomputed_svds()
 	#topNToFind = 10 # Find top 10 most similar restaurants
 	#map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
