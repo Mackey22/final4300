@@ -325,7 +325,7 @@ def gen_data_file(minReviews=25, cutoff=5000, reduced_size=50, n_feats=5000, top
 	sim_mat_start = time.time()
 	cities = get_ordered_cities()
 	get_reviews_start = time.time()
-	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews, business_name_to_id) # Also does filtering based on review count here
+	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews, business_id_to_name) # Also does filtering based on review count here
 	get_reviews_end = time.time()
 	print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
 	#n_feats = 5000
