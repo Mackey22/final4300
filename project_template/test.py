@@ -78,6 +78,7 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity
     for i in range(len(most_similar_ids)):
         info = most_similar_ids[i]
         name = info[0]
+<<<<<<< HEAD
         full_address = info[3]
         names.append(name)
         adds.append(full_address)

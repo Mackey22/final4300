@@ -38,32 +38,27 @@ def string_words(l):
     return " ".join(res)
 
 
-def gen_table(output_list, contributing_words):
-    """Return list of strings each formatted as html table."""
-    s = []
-    for i in range(len(output_list)):
-        obj = output_list[i]
-        s2_list = [
-            "<div class='display_res'><div class='sub'>",
-            string_words(contributing_words[i]),
-            " stars</div><div class='sub'><img class='image-circle' src='",
-            obj['image_url'],
-            "' height=100 width=100></img></div><div class='sub'><h4><a href='",
-            obj['url'],
-            "'>",
-            obj['name'],
-            "</a></h4></div><div class='sub'>",
-            str(obj['rating']),
-            " stars</div><div class='sub'>",
-            string_cats(obj['categories']),
-            "</div><div class='sub'>",
-            string_obj(obj['location']['display_address']),
-            "</div></div><br> <br>"
-        ]
-        s2 = unidecode("".join(s2_list))
-
-        s.append(format_html("{}", mark_safe(s2)))
-    return s
+def gen_table(output_list):
+  print ("length output_list")
+  print (len(output_list))
+  """Return list of strings each formatted as html table"""
+# [u'rating', u'review_count', u'name', u'transactions', u'url', u'price', u'distance', u'coordinates', u'phone', u'image_url', 
+# u'categories', u'display_phone', u'id', u'is_closed', u'location']
+  s = []
+  for i in range(len(output_list)):
+    # try:
+    obj = output_list[i]
+    s2 = "<div class='display_res'>"
+    s2 += "<div class='sub'><img class='image-circle' src='" + obj['image_url']  + "' height=100 width=100></img>" + "</div>"
+    s2 += "<div class='sub'><h4><a href='" + obj['url'] + "'>" + obj['name'] + "</a></h4></div>"
+    s2 += "<div class='sub'>" + "Price: " + obj['price'] + "</div>"
+    s2 += "<div class='sub'>" + "Review count: " + str(obj['review_count'])+ "</div>"
+    s2 += "<div class='sub'>" + " Similar aspects: " + string_words(obj['categories']) + "</div>"
+    s2 += "<div class='sub'>" + str(obj['rating']) + " stars</div>"
+    s2 += "<div class='sub'>" + string_obj(obj['location']['display_address']) + "</div>"
+    s2 += "<div class='sub'>" + "Phone: " + obj['display_phone'] + "</div>"
+    s2 += "</div><br> <br>"
+    s.append(format_html("{}", mark_safe(s2)))
 
 
 def gen_category_list(output_list):
@@ -76,11 +71,9 @@ def gen_category_list(output_list):
     return sorted(list(categories))
 
 
-def set_cats(obj):
-    return set([c['title'] for c in obj['categories']])
 
 
-def sort_by_category(output_list, chosen_categories, contributing_words):
+def sort_by_category(output_list, chosen_categories):
     """Return restaurant list sorted by jaccard similarity of categories."""
     rest_scores = []
     for restaurant in output_list:
@@ -91,11 +84,26 @@ def sort_by_category(output_list, chosen_categories, contributing_words):
 
     rest_scores = sorted(rest_scores,key=lambda x:-x[1])
     # TODO: resort contributing words to match rest_scores
-    return [res_score[0] for res_score in rest_scores], contributing_words
+    return [res_score[0] for res_score in rest_scores]
 
-with open('autocomplete_info.json') as data_file:
-                autocomplete_info = json.load(data_file)
-autocomplete_info = json.dumps(autocomplete_info)
+
+def list_cats(restObj):
+  cats = []
+  for cat in restObj['categories']:
+    cats.append(cat['title'])
+  return cats
+
+
+def remake_output(output_list, contributing_words):
+  for i in range(len(output_list)):
+    restObj = output_list[i]
+    cats = list_cats(restObj)
+    restObj['categories'] = list(set(cats + contributing_words[i]))
+  print (output_list)
+
+  for x in output_list:
+    print x['categories']
+  return output_list
 
 
 def index(request):
@@ -110,6 +118,7 @@ def index(request):
     dest = 'Please select a destination'
     search = ''
     best_match = ''
+    display_topics_categories = []
 
     # GET ALL INPUT VALUES
     if request.GET.get('search'):
@@ -122,54 +131,52 @@ def index(request):
         search = res[0].strip()
         origin_city = res[1].strip()
         origin_state = res[2].strip()
-        print "Got params in", time.time() - timing_gets, "seconds"
         if request.GET.get('dest'):
-            dest = request.GET.get('dest')
-            output_list, best_match, contributing_words = find_similar(search, origin_city, dest)
+          dest = request.GET.get('dest')
+          output_list, best_match, contributing_words = find_similar(search, origin_city, dest)
 
-            # IF CATEGORIES SELECTED, FILTER BY JACC SIM
-            category_timer = time.time()
-            if request.GET.get('categories'):
-                chosen_categories = request.GET.getlist('categories')
-                output_list, contributing_words = sort_by_category(output_list, chosen_categories, contributing_words)
-                print "Category sorting took", time.time() - category_timer, "seconds"
+          #initialize all topics and categories      
+          print ('before')    
+          print ('after')
 
-            # CREATE TABLE OF RESULTS
-            output_timer = time.time()
-            output_html = gen_table(output_list, contributing_words)
-            print "Generating output took", time.time() - output_timer, "seconds"
-            paginate_timer = time.time()
-            paginator = Paginator(output_html, 10)
-            page = request.GET.get('page')
-            try:
-                    output = paginator.page(page)
-            except PageNotAnInteger:
-                    output = paginator.page(1)
-            except EmptyPage:
-                    output = paginator.page(paginator.num_pages)
-            print "Paginating took", time.time() - paginate_timer, "seconds"
+          output_list = remake_output(output_list, contributing_words)
+          display_topics_categories = gen_category_list(output_list)
+          print ("output is")
 
+          #IF CATEGORIES SELECTED, FILTER BY JACC SIM
+          if request.GET.get('categories'):
+            chosen_categories_and_topics = request.GET.getlist('categories')
+            print ("selected categories and topics")
+            print (chosen_categories_and_topics)
+            output_list = sort_by_category(output_list, chosen_categories_and_topics)
+
+
+          
+          #CREATE TABLE OF RESULTS
+          output_html = gen_table(output_list)
+          paginator = Paginator(output_html, 10)
+          page = request.GET.get('page')
+          try:
+              output = paginator.page(page)
+          except PageNotAnInteger:
+              output = paginator.page(1)
+          except EmptyPage:
+              output = paginator.page(paginator.num_pages)
     if best_match == '':
         rest_loc = ''
     else:
-        else_time = time.time()
-        rest_loc = string.capwords(best_match) + ', ' + origin_city + ', ' + origin_state
-        print "Else timer took", time.time() - else_time, "seconds"
-
-    rendering_timer = time.time()
-    rendered = render_to_response('project_template/index.html',
-                            {'output': output,
-                             'home_cities': home_cities,
-                             "dest_cities": dest_cities,
-                             'magic_url': request.get_full_path(),
-                             # 'origin': origin,
-                             'dest': dest,
-                             'query': search,
-                             'best_match': rest_loc,
-                             'categories': gen_category_list(output_list),
-                             'topics': ['topic 1','topice 2', 'topic 3', 'topic n'],
-                             'auto_json': autocomplete_info
-                             })
-    print "Rendering took", time.time() - rendering_timer, "seconds"
-    print "Total time was", time.time() - start_time, "seconds"
-    return rendered
+      rest_loc = string.capwords(best_match) + ', ' + origin_city + ', ' + origin_state
+      print "Total time was", time.time() - start_time, "seconds"
+      return render_to_response('project_template/index.html',
+                          {'output': output,
+                           'home_cities': home_cities,
+                           "dest_cities": dest_cities,
+                           'magic_url': request.get_full_path(),
+                           # 'origin': origin,
+                           'dest': dest,
+                           'query': search,
+                           'best_match': rest_loc,
+                           'categories': display_topics_categories,
+                           'topics': ['topic 1','topice 2', 'topic 3', 'topic n'],
+                           'auto_json': autocomplete_info
+                           })
