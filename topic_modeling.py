@@ -204,8 +204,8 @@ def get_similar_topics(idx1, idx2, topicid_to_label, doc_topic_mtx):
     return topics
 
 
-if __name__ == "__main__":
-    do_everything()
+# if __name__ == "__main__":
+#     do_everything()
     # convert_to_sparse()
     # train_model(num_topics=15)
     # model_play(MODEL_PATH)

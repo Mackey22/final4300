@@ -3,7 +3,7 @@
 import json
 import numpy as np
 from collections import defaultdict
-# from data_play import make_hist
+from topic_modeling import *
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import time
