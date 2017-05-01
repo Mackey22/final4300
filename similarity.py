@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 import numpy as np
 from collections import defaultdict
@@ -150,6 +152,7 @@ def gen_business_name_to_id(cutoff, minReviews):
 
 
 # Have to update this to do it based on dest city
+<<<<<<< HEAD
 def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, numToFind):
     print "Creating map from city -> restaurant -> top sim restaurants"
     destCities = ['charlotte', 'henderson', 'las vegas', 'mesa', 'montreal', 'phoenix', 'pittsburgh', 'scottsdale', 'tempe', 'toronto']
@@ -257,6 +260,157 @@ def gen_data_file(minReviews=10, cutoff=5000, n_feats=5000, topNToFind=10):
     print("Preprocessing took: " + str(end - start) + " seconds")
 
 
+# Albany for cosine
+# def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, numToFind, feature_names, numTerms):
+# 	print "Creating map from city -> restaurant -> top sim restaurants"
+# 	destCities = ['charlotte', 'henderson', 'las vegas', 'mesa', 'montreal', 'phoenix', 'pittsburgh', 'scottsdale', 'tempe', 'toronto']
+# 	topMatchDict = {}
+# 	contributingWordsDict = {}	# Indexed on key, which will be query. Inside, another dictionary indexed on keys of the top restaurant matches. Val = list of words
+# 	topRestStart = time.time()
+# 	n, d = restaurant_by_vocab_matrix.shape
+# 	topMatchMat = np.zeros((n, numToFind), dtype=int)
+# 	numDone = 0
+# 	for i in range(n):
+# 		topMatchDict[unique_ids[i]] = {}
+# 		contributingWordsDict[unique_ids[i]] = {}
+# 		for city in destCities:
+# 			topMatchDict[unique_ids[i]][city] = []
+# 		dictItems = 0 # So we can break when dict has all the necessary entries for a restaurant
+# 		restaurant_to_mult = restaurant_by_vocab_matrix[i]
+# 		################## Trying to get most contributing words
+# 		#fixedList = np.zeros(n)
+# 		#topTermList = np.zeros((n, numTerms))
+# 		#restaurant_to_mult = restaurant_to_mult.toarray()
+# 		#for j in range(n):
+# 		#	curRest = restaurant_by_vocab_matrix[j].toarray()
+# 		#	termSims = np.multiply(curRest, restaurant_to_mult)[0]
+# 		#	topTerms = (np.argsort(termSims)[::-1])[:numTerms]
+# 		#	fixedList[j] = np.sum(termSims)
+# 		#	topTermList[j, :] = topTerms
+# 		#######################
+# 		one_restaurant_similarity = np.dot(restaurant_by_vocab_matrix, restaurant_to_mult.T)
+# 		fixedList = (one_restaurant_similarity.toarray()).flatten()
+# 		ordered_indices = np.argsort(fixedList)[::-1]
+# 		#print("\n\n\n----------------------------------\n\n\n")
+# 		#print("Looking for matches with " + str(business_id_to_name[unique_ids[i]]))
+# 		#print("Best match is " + str(business_id_to_name[unique_ids[ordered_indices[1]]]))
+# 		#print("feature names are " + str(feature_names))
+# 		#print("Printing top contributing words: ")
+# 		#for t in topTermList[ordered_indices[1]]:
+# 		#	print(feature_names[int(t)])
+# 		#print('\n\n----------------------------------------------\n\n')
+# 		#print("Finding matches for: " + str(business_id_to_name[unique_ids[i]]))
+# 		restaurant_to_mult = restaurant_to_mult.toarray()
+# 		for idx in ordered_indices:
+# 			if idx == i:
+# 				continue
+# 			city = business_id_to_name[unique_ids[idx]][1]
+# 			if city in topMatchDict[unique_ids[i]] and len(topMatchDict[unique_ids[i]][city])<numToFind:
+# 				topMatchDict[unique_ids[i]][city].append(unique_ids[idx])
+# 				dictItems += 1
+# 				#print("Added " + str(business_id_to_name[unique_ids[idx]]) + " to relevant match list")
+# 				###### Handle top words stuff in here
+# 				matchedRow = restaurant_by_vocab_matrix[idx].toarray()
+# 				termSims = np.multiply(matchedRow, restaurant_to_mult)[0]
+# 				topTerms = (np.argsort(termSims)[::-1])[:numTerms]
+# 				contributingWordsDict[unique_ids[i]][unique_ids[idx]] = [feature_names[termIdx] for termIdx in topTerms]
+# 				######
+# 				if dictItems >= numToFind*len(destCities):
+# 					break
+# 		numDone += 1
+# 		#print(business_id_to_name[unique_ids[i]])
+# 		#print(topMatchDict[unique_ids[i]])
+# 		# for key in topMatchDict[unique_ids[i]].keys():
+# 		# 	#print(key)
+# 		# 	for val in topMatchDict[unique_ids[i]][key]:
+# 		# 		print(business_id_to_name[val])
+# 		if numDone % 500 == 0:
+# 			print("Mapped %.2f restaurants to top similar so far" % numDone)
+
+# 		#topMatchMat[i] = ordered_indices[1:numToFind+1]
+# 	#print topMatchMat
+# 	topRestEnd = time.time()
+# 	print("Mapping restaurants to top similar took: " + str(topRestEnd - topRestStart) + " seconds\n")
+# 	return topMatchDict, contributingWordsDict
+
+
+# # Generates a single json file containing the similarity matrix, unique ids list mapping sim matrix index to corresponding business id, and business id to name/business name to id dicts
+# def gen_data_file(minReviews=25, cutoff=5000, n_feats=5000, topNToFind=10, numTerms=10):
+# 	start = time.time()
+# 	#minReviews = 25  # Change this to change minimum number of business reviews for it to be included in dataset
+# 	#cutoff = 300 # Cut off at 300 businesses for size limitaitons, figure out later.
+# 	gen_business_start = time.time()
+# 	print("starting business id dict generation")
+# 	gen_business_id_to_name(999999, minReviews) # I think we can't cut this off when we're only using a partial dataset
+# 	gen_business_name_to_id(999999, minReviews)
+# 	with open('business_id_to_name.json') as data_file:
+# 		business_id_to_name = json.load(data_file)
+# 	with open('business_name_to_id.json') as data_file:
+# 		business_name_to_id = json.load(data_file)
+# 	gen_business_end = time.time()
+# 	print("finished business id dict generation in " + str(gen_business_end - gen_business_start) + " seconds\n")
+# 	print("starting initial sim_mat generation")
+# 	sim_mat_start = time.time()
+# 	cities = get_ordered_cities()
+# 	get_reviews_start = time.time()
+# 	unique_ids, reviews, ordered_business_categories = get_reviews_and_ids(cutoff, minReviews, business_id_to_name) # Also does filtering based on review count here
+# 	get_reviews_end = time.time()
+# 	print ("finished get_reviews_and_ids in " + str(get_reviews_end - get_reviews_start) + " seconds\n")
+# 	#n_feats = 5000
+# 	print("starting tfidf_vec.fit_transform()")
+# 	tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2', strip_accents='ascii')
+# 	fit_transform_start = time.time()
+# 	restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
+# 	fit_transform_end = time.time()
+# 	print ("finished tfidf_vec.fit_transform in " + str(fit_transform_end - fit_transform_start) + " seconds\n")
+
+# 	# Don't need this code when we're using SVD on the restaurant_by_vocab matrix
+# 	# gen_sim_matrix_start = time.time()
+# 	# sim_matrix = gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix)
+# 	# gen_sim_matrix_end = time.time()
+# 	# print ("finished gen_sim_matrix in " + str(gen_sim_matrix_end - gen_sim_matrix_start) + " seconds\n")
+# 	# sim_mat_end = time.time()
+# 	# print ("finished initial sim_mat generation in " + str(sim_mat_end - sim_mat_start) + " seconds\n")
+
+# 	# perform SVD
+# 	# svdStart = time.time()
+# 	# print ("starting SVD")
+# 	# #reduced_size = 50 # Can by changed as needed
+# 	# lsa = TruncatedSVD(reduced_size, algorithm='randomized')
+# 	# svd_matrix = lsa.fit_transform(restaurant_by_vocab_matrix)
+# 	# svd_matrix = Normalizer(copy=False).fit_transform(svd_matrix) # copy=false to perform in place normalization, useful on larger dataset
+# 	# sim_matrix = svd_matrix.dot(svd_matrix.T)
+# 	# svdEnd = time.time()
+# 	# print ("finished SVD in " + str(svdEnd - svdStart) + " seconds\n")
+# 	# end SVD
+
+# 	#topNToFind = 10 # Find top 10 most similar restaurants
+# 	feature_names = TfidfVectorizer.get_feature_names(tfidf_vec)
+# 	topMatchDict, contributingWordsDict = map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, topNToFind, feature_names, numTerms)
+
+# 	saveDataStart = time.time()
+
+# 	data = {}
+# 	data['business_id_to_name'] = business_id_to_name
+# 	data['business_name_to_id'] = business_name_to_id
+# 	data['topMatches'] = topMatchDict
+# 	data['unique_ids'] = unique_ids
+# 	data['ordered_business_categories'] = ordered_business_categories
+# 	data['cities'] = cities
+# 	data['contributing_words'] = contributingWordsDict
+
+# 	with open('jsons/kardashian-transcripts.json', 'w') as fp:
+# 		json.dump(data, fp)
+# 	#with open('jsons/svd_matrix.json', 'w') as fp:
+# 	#    json.dump(svd_matrix.tolist(), fp)
+
+# 	saveDataEnd = time.time()
+# 	print("Saving preprocessed data took " + str(saveDataEnd - saveDataStart) + " seconds\n")
+
+# 	end = time.time()
+# 	print("Preprocessing took: " + str(end - start) + " seconds")
+
+
 def load_precomputed_svds():
     with open('jsons/kardashian-transcripts.json') as fp:
         data = json.load(fp)
@@ -318,6 +472,6 @@ if __name__ == "__main__":
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
     gen_data_file(minReviews=10, cutoff=500, n_feats=5000, topNToFind=5)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
-    #mtx, unique_ids, business_id_to_name = load_precomputed_svds()
-    #topNToFind = 10 # Find top 10 most similar restaurants
-    #map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
+    # mtx, unique_ids, business_id_to_name = load_precomputed_svds()
+    # topNToFind = 10 # Find top 10 most similar restaurants
+    # map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)
