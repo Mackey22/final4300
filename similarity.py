@@ -231,7 +231,7 @@ def gen_business_id_to_name(cutoff, minReviews):
                             badCategory = True
                             break
                     if not badCategory:
-                        business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
+                        business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower(), data['address'])
                         count += 1
                         if count > cutoff:
                             break
@@ -260,8 +260,9 @@ def gen_business_name_to_id(cutoff, minReviews):
                             business_name_to_id[data['name'].lower()][0].append(data['business_id'])
                             business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
                             business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
+                            business_name_to_id[data['name'].lower()][3].append(data['address'])
                         else:
-                            business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
+                            business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()], [data['address']])
                         count += 1
                         if count > cutoff:
                             break
