@@ -133,7 +133,7 @@ def index(request):
         origin_state = res[2].strip()
         if request.GET.get('dest'):
           dest = request.GET.get('dest')
-          output_list, best_match, contributing_words = find_similar(search, origin_city, dest)
+          output_list, best_match, contributing_words, autocomplete_info = find_similar(search, origin_city, dest)
 
           #initialize all topics and categories      
           print ('before')    
@@ -146,12 +146,8 @@ def index(request):
           #IF CATEGORIES SELECTED, FILTER BY JACC SIM
           if request.GET.get('categories'):
             chosen_categories_and_topics = request.GET.getlist('categories')
-            print ("selected categories and topics")
-            print (chosen_categories_and_topics)
             output_list = sort_by_category(output_list, chosen_categories_and_topics)
 
-
-          
           #CREATE TABLE OF RESULTS
           output_html = gen_table(output_list)
           paginator = Paginator(output_html, 10)
