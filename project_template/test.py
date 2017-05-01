@@ -80,8 +80,12 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity
         words = contributing_words[topMatchesRow[i]]
         extra_info = api_business_info(name, full_address)
         if extra_info != []:
+            #only add words if got valid api response
             res.append(extra_info)
-        res2.append(words)
+            res2.append(words)
+        # else:
+        #     res.append({})
+        # res2.append(words)
     return res, res2
 
 
