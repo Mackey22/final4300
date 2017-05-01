@@ -151,7 +151,7 @@ def gen_business_name_to_id(cutoff, minReviews):
     with open('business_name_to_id.json', 'w') as fp:
         json.dump(business_name_to_id, fp)
 
-Albany for cosine
+
 def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, numToFind, feature_names, numTerms):
 	print "Creating map from city -> restaurant -> top sim restaurants"
 	destCities = ['charlotte', 'henderson', 'las vegas', 'mesa', 'montreal', 'phoenix', 'pittsburgh', 'scottsdale', 'tempe', 'toronto']
@@ -276,6 +276,12 @@ def gen_data_file(minReviews=25, cutoff=5000, n_feats=5000, topNToFind=10, numTe
 	# end SVD
 
 	#topNToFind = 10 # Find top 10 most similar restaurants
+
+	###### Topic modeling stuff here
+	doc_topic_mtx = get_doc_topic_matrix(unique_ids=unique_ids, realdata=False) #will take unique_ids as argument later
+
+	#######
+
 	feature_names = TfidfVectorizer.get_feature_names(tfidf_vec)
 	topMatchDict, contributingWordsDict = map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, topNToFind, feature_names, numTerms)
 
@@ -362,7 +368,7 @@ if __name__ == "__main__":
     # tfidf_vec = TfidfVectorizer(max_df=0.8, min_df=.10, max_features=n_feats, stop_words='english', norm='l2')
     # restaurant_by_vocab_matrix = tfidf_vec.fit_transform(reviews)
 
-    gen_data_file(minReviews=25, cutoff=5000, n_feats=5000, topNToFind=10, numTerms=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
+    gen_data_file(minReviews=25, cutoff=200, n_feats=5000, topNToFind=10, numTerms=10)# Uncomment this to run preprocessing: Generates data file with sim matrix, business id/name dicts, and unique_ids for indexing business ids in sim matrix
     # mtx, unique_ids, business_id_to_name = load_precomputed_svds()
     # topNToFind = 10 # Find top 10 most similar restaurants
     # map_restaurant_to_top_similar(mtx, unique_ids, business_id_to_name, topNToFind)

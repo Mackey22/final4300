@@ -126,7 +126,6 @@ def get_matrices():
     start = time.time()
     with open("matrix.json") as df:
         doc_term_matrix = json.load(df)
-    dictionary = corpora.Dictionary().load("topics_dt_mtx/large_dict")
     ldamodel = Lda.load(MODEL_PATH)
     loaded = time.time()
     print "Doc-Term Matrix loaded in", loaded - start, "seconds"
@@ -140,16 +139,20 @@ def get_matrices():
             mp[topic_id] = topic_score
         array.append(mp)
 
+    topicwordarray = []
+    for _, words in (topic_word_mtx):
+        topicwordarray.append(words)
+
     with open("doc_topic_mtx.json", "w") as df:
         json.dump(array, df)
     with open("topic_word_mtx.json", "w") as df:
-        json.dump(topic_word_mtx, df)
+        json.dump(topicwordarray, df)
 
     for i in topic_word_mtx:
         print i
     print "Doc-Topic and Topic-Word Matrices loaded in", time.time() - loaded, "seconds"
 
-    return array, dictionary, ldamodel
+    return array, ldamodel
 
 
 def make_big_dt_matrix():
@@ -192,7 +195,7 @@ def get_doc_topic_matrix(realdata=True, unique_ids=["--9e1ONYQuAa-CB_Rrw7Tw", "p
         model = train_model(corpus, numpasses=40, num_topics=40, load_mtx=False)
     else:
         model = train_model(corpus, numpasses=15, num_topics=20, load_mtx=False)
-    doc_topic_mtx, _, _ = get_matrices()
+    doc_topic_mtx, _ = get_matrices()
     return doc_topic_mtx
 
 
