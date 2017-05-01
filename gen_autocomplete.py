@@ -11,13 +11,7 @@ for _ , info in business_id_to_name.iteritems():
 	auto_info.append(data)
 
 with open('autocomplete_info.json', 'w') as fp:
-        json.dump(auto_info, fp)
-
-with open('autocomplete_info.json') as data_file:
-        autocomplete_info = json.load(data_file)
-print autocomplete_info[0]
-autocomplete_info = json.dumps(autocomplete_info)
-
+	json.dump(auto_info, fp)
 
 
 

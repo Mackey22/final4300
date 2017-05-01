@@ -24,15 +24,29 @@ headers = {'Authorization': 'bearer %s' % access_token}
 
 
 def api_business_info(business_name, location):
-    # remove apostrophes and spaces to avoid errors in api call
-    business_name = business_name.replace("'","")
-    location = location.replace("'","")
     params = {'location': location, 'term': business_name}
     url = 'https://api.yelp.com/v3/businesses/search'
-    # url = 'https://api.yelp.com/v3/businesses/' + business_name + "-" + location + "/reviews"
     resp = requests.get(url=url, params=params, headers=headers)
-    top_business = resp.json()['businesses'][0]
-    return top_business
+
+    try:
+        top_businesses = resp.json()['businesses']
+        for i in range(len(top_businesses)):
+            b1 = (top_businesses[i]['name']).lower()
+            b2 = business_name.lower()
+            a1 = (top_businesses[i]['location']['address1']).lower()
+            a2 = location.lower()
+            temp = []
+            #immediately return business with 2 matches
+            if (b1 == b2) and (a1 == a2):
+                return top_businesses[i]
+            #save business with one match
+            if (b1 == b2) or (a1 == a2):
+                tmp = top_businesses[i]
+        #return business with one match
+        return tmp
+
+    except:
+        return []
 
 
 # k is number of results to display
@@ -62,10 +76,11 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity
         name = info[0]
         city = info[1]
         state = info[2]
-        location = city + " " + state
+        full_address = info[3] 
         words = contributing_words[topMatchesRow[i]]
-        extra_info = api_business_info(name,location)
-        res.append(extra_info)
+        extra_info = api_business_info(name, full_address)
+        if extra_info != []:
+            res.append(extra_info)
         res2.append(words)
     return res, res2
 
@@ -98,11 +113,9 @@ def read_file(n):
     business_id_to_name = data['business_id_to_name']
     business_name_to_id = data['business_name_to_id']
     contributing_words = data['contributing_words']
-    # print "length sim matrix: " + str(len(sim_matrix))
-    print "length unique_ids: " + str(len(unique_ids))
-    print unique_ids[0]
-    # print business_id_to_name[unique_ids[0]]
+
     return topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words
+
 
 
 # responds to request
@@ -166,3 +179,8 @@ def find_similar(query,origin,destination):
         result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
 
     return result, bestMatchKey, result2
+
+
+# print (api_business_info("Pizza Pizza", '979 Bloor Street W'))
+# print (api_business_info("Plush Salon and Spa", '7014 Steubenville Pike'))
+# print (api_business_info("Comfort Inn", '321 Jarvis Street'))
