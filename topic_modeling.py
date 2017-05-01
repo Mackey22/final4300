@@ -183,12 +183,15 @@ def make_corpus(unique_ids):
     return corpus
 
 
-def do_everything(unique_ids=["--9e1ONYQuAa-CB_Rrw7Tw", "pX3TM1r3PTgUdfUTAjk44w", "rnvsL0oFZpzpO61GXqBF6g", "FuNMqkKUGzDnX4XJcJee4Q", "Bmv3nHS2nfjzhkDQMsLAWQ", "lGmXgLQklCW0laI5Gdxopw", "cbjb-iJaZ7XydkCrFmuSjQ", "AKMvsVr_9meoSmawkEBe4g", "OaM2Bjeo2Ftt84ruTrzPNQ", "-sX7hDKR_bdBVQxuOaO5dA", "7gHdVSAz_Dm1wS1ZImJSiQ", "WfDB6grqF9-1bOAP505Lqg", "ePkouyI6uFc9ifEzvxD4jw", "xsdRrNJuNumvrwoQ2Tt8tQ"]):
+def get_doc_topic_matrix(realdata=True, unique_ids=["--9e1ONYQuAa-CB_Rrw7Tw", "pX3TM1r3PTgUdfUTAjk44w", "rnvsL0oFZpzpO61GXqBF6g", "FuNMqkKUGzDnX4XJcJee4Q", "Bmv3nHS2nfjzhkDQMsLAWQ", "lGmXgLQklCW0laI5Gdxopw", "cbjb-iJaZ7XydkCrFmuSjQ", "AKMvsVr_9meoSmawkEBe4g", "OaM2Bjeo2Ftt84ruTrzPNQ", "-sX7hDKR_bdBVQxuOaO5dA", "7gHdVSAz_Dm1wS1ZImJSiQ", "WfDB6grqF9-1bOAP505Lqg", "ePkouyI6uFc9ifEzvxD4jw", "xsdRrNJuNumvrwoQ2Tt8tQ"]):
     with open("topics_dt_mtx/unique_ids.json", "w") as df:
         json.dump(unique_ids, df)
 
     corpus = make_corpus(unique_ids)
-    model = train_model(corpus, numpasses=40, num_topics=40, load_mtx=False)
+    if realdata:
+        model = train_model(corpus, numpasses=40, num_topics=40, load_mtx=False)
+    else:
+        model = train_model(corpus, numpasses=15, num_topics=20, load_mtx=False)
     doc_topic_mtx, _, _ = get_matrices()
     return doc_topic_mtx
 
@@ -205,7 +208,8 @@ def get_similar_topics(idx1, idx2, topicid_to_label, doc_topic_mtx):
 
 
 if __name__ == "__main__":
-    do_everything()
+    dtm = get_doc_topic_matrix()
+    print get_similar_topics(1, 2, {1:"a", 2:"b", 3:"c", 4:"d", 5:"e", 6:"f", 7:"g", 8:"h"}, dtm)
     # convert_to_sparse()
     # train_model(num_topics=15)
     # model_play(MODEL_PATH)
