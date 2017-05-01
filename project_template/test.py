@@ -36,7 +36,7 @@ def api_business_info(business_name, location):
 
 
 # k is number of results to display
-def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity, k=5):
+def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity, contributing_words, k=5):
     """
     Find most similar restaurants to the given restaurant id.
 
@@ -56,14 +56,18 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity
     most_similar_ids = [business_id_to_name[x] for x in topMatchesRow][:k]
     # id -> (name,city,state)
     res = []
-    for info in most_similar_ids:
+    res2 = []
+    for i in range(len(most_similar_ids)):
+        info = most_similar_ids[i]
         name = info[0]
         city = info[1]
         state = info[2]
         location = city + " " + state
+        words = contributing_words[topMatchesRow[i]]
         extra_info = api_business_info(name,location)
         res.append(extra_info)
-    return res
+        res2.append(words)
+    return res, res2
 
 
     # return most_similar_scores_and_ids
@@ -118,7 +122,7 @@ def find_similar(query,origin,destination):
                 break
         # This if/else block is to deal with the unique_ids problem. Remove it later on
         if bid in unique_ids:
-            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination)
+            result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
         else:
             minDist = 999999
             # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -134,7 +138,7 @@ def find_similar(query,origin,destination):
                     bestMatchKey = name
                     bestMatchBid = bid
             bid = bestMatchBid
-            result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination)
+            result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
     else:
         minDist = 999999
         # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
@@ -159,6 +163,6 @@ def find_similar(query,origin,destination):
         #             bestMatchKey = key
         #             bestMatchBid = value[0][i]
         bid = bestMatchBid
-        result = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination)
+        result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
 
-    return result, bestMatchKey
+    return result, bestMatchKey, result2

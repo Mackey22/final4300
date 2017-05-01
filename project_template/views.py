@@ -23,21 +23,19 @@ def string_obj(obj):
     res += c + " "
   return res
 
-def gen_table(output_list):
+def string_words(l):
+  res = ''
+  for w in l:
+    res += ' ' + str(w)
+  return res 
+
+def gen_table(output_list, contributing_words):
   """Return list of strings each formatted as html table"""
-  # s = []
-  # for obj in output_list:
-  #   s2 = "<table width=90%"
-  #   s2 += "<tr><td><img src='" + obj['image_url']  + "' height=100 width=100></img>" + "</td>"
-  #   s2 += "<td><a href='" + obj['url'] + "'>" + obj['name'] + "</a></td></tr>"
-  #   s2 += "<tr><td>" + str(obj['rating']) + " stars</td></tr>"
-  #   s2 += "<tr><td>" + string_cats(obj['categories']) + "</td></tr>"
-  #   s2 += "<tr><td>" + string_obj(obj['location']['display_address']) + "</td></tr>"
-  #   s2 += "</table><br><br>"
-  #   s.append(format_html("{}", mark_safe(s2)))
+
   s = []
   for obj in output_list:
     s2 = "<div class='display_res'>"
+    s2 += "<div class='sub'>" + string_words(contributing_words) + " stars</div>"
     s2 += "<div class='sub'><img class='image-circle' src='" + obj['image_url']  + "' height=100 width=100></img>" + "</div>"
     s2 += "<div class='sub'><h4><a href='" + obj['url'] + "'>" + obj['name'] + "</a></h4></div>"
     s2 += "<div class='sub'>" + str(obj['rating']) + " stars</div>"
@@ -61,7 +59,7 @@ def gen_category_list(output_list):
 def set_cats(obj):
   return set([c['title'] for c in obj['categories']])
 
-def sort_by_category(output_list, chosen_categories):
+def sort_by_category(output_list, chosen_categories, contributing_words):
   """return restaurant list sorted by jaccard similarity of categories"""
 
   rest_scores = []
@@ -72,8 +70,8 @@ def sort_by_category(output_list, chosen_categories):
     rest_scores.append((restaurant, score))
 
   rest_scores = sorted(rest_scores,key=lambda x:-x[1])
-
-  return [res_score[0] for res_score in rest_scores]
+  #TODO: resort contributing words to match rest_scores
+  return [res_score[0] for res_score in rest_scores], contributing_words
 
 with open('autocomplete_info.json') as data_file:
         autocomplete_info = json.load(data_file)
@@ -101,15 +99,15 @@ def index(request):
         origin_state = res[2].strip()
         if request.GET.get('dest'):
           dest = request.GET.get('dest')
-          output_list, best_match = find_similar(search, origin_city, dest)
+          output_list, best_match, contributing_words = find_similar(search, origin_city, dest)
 
           #IF CATEGORIES SELECTED, FILTER BY JACC SIM
           if request.GET.get('categories'):
             chosen_categories = request.GET.getlist('categories')
-            output_list = sort_by_category(output_list, chosen_categories)
+            output_list, contributing_words = sort_by_category(output_list, chosen_categories, contributing_words)
 
           #CREATE TABLE OF RESULTS
-          output_html = gen_table(output_list)
+          output_html = gen_table(output_list, contributing_words)
           paginator = Paginator(output_html, 10)
           page = request.GET.get('page')
           try:
