@@ -320,8 +320,8 @@ def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, busine
 				###### Handle top words stuff in here
 				matchedRow = restaurant_by_vocab_matrix[idx].toarray()
 				termSims = np.multiply(matchedRow, restaurant_to_mult)[0]
-				topTerms = feature_names[(np.argsort(termSims)[::-1])[:numTerms]]
-				contributingWordsDict[unique_ids[i]][unique_ids[idx]] = topTerms.tolist()
+				topTerms = (np.argsort(termSims)[::-1])[:numTerms]
+				contributingWordsDict[unique_ids[i]][unique_ids[idx]] = [feature_names[termIdx] for termIdx in topTerms]
 				######
 				if dictItems >= numToFind*len(destCities):
 					break

@@ -33,9 +33,10 @@ def gen_table(output_list, contributing_words):
   """Return list of strings each formatted as html table"""
 
   s = []
-  for obj in output_list:
+  for i in range(len(output_list)):
+    obj = output_list[i]
     s2 = "<div class='display_res'>"
-    s2 += "<div class='sub'>" + string_words(contributing_words) + " stars</div>"
+    s2 += "<div class='sub'>" + string_words(contributing_words[i]) + " stars</div>"
     s2 += "<div class='sub'><img class='image-circle' src='" + obj['image_url']  + "' height=100 width=100></img>" + "</div>"
     s2 += "<div class='sub'><h4><a href='" + obj['url'] + "'>" + obj['name'] + "</a></h4></div>"
     s2 += "<div class='sub'>" + str(obj['rating']) + " stars</div>"
