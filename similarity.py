@@ -12,20 +12,22 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import Normalizer
 import sys
 
+
 def sort_dict_by_val(d):
-	"""Get a list of a dict's keys ordered by descending values."""
-	return sorted(d, key=d.__getitem__, reverse=True)
+    """Get a list of a dict's keys ordered by descending values."""
+    return sorted(d, key=d.__getitem__, reverse=True)
+
 
 def gen_business_id_to_name():
-	"""Return Dict - maps business id to business name."""
-	business_id_to_name = defaultdict(str)
-	# with open('yelp_academic_dataset_business.json') as data_file:
-	#     for line in data_file:
-	#         data = (json.loads(line))
-	#         business_id_to_name[data['business_id']] = data['name']
-	with open('business_id_to_name.json') as data_file:
-		business_id_to_name = json.load(data_file)
-	return business_id_to_name
+    """Return Dict - maps business id to business name."""
+    business_id_to_name = defaultdict(str)
+    # with open('yelp_academic_dataset_business.json') as data_file:
+    #     for line in data_file:
+    #         data = (json.loads(line))
+    #         business_id_to_name[data['business_id']] = data['name']
+    with open('business_id_to_name.json') as data_file:
+        business_id_to_name = json.load(data_file)
+    return business_id_to_name
 
 # business_id_to_name = gen_business_id_to_name()
 
@@ -121,39 +123,39 @@ def get_reviews_and_ids(maxNum, minReviews, business_id_to_name):
 
 
 def prune_json(n):
-	new_map = {}
-	with open('jsons/try1.json') as data_file:
-		data = json.load(data_file)
-	for k, v in data.items():
-		if v['review_count'] >= n:
-			new_map[k] = v
-	with open('jsons/pruned.json', 'w') as fp:
-		json.dump(new_map, fp, indent=4)
+    new_map = {}
+    with open('jsons/try1.json') as data_file:
+        data = json.load(data_file)
+    for k, v in data.items():
+        if v['review_count'] >= n:
+            new_map[k] = v
+    with open('jsons/pruned.json', 'w') as fp:
+        json.dump(new_map, fp, indent=4)
 
 
 def get_sim(vec1, vec2):
-	"""
-	Get similarity of the two vectors.
+    """
+    Get similarity of the two vectors.
 
-	Arguments:
-		name1: vector of the first city
-		name2: vector of the second city
-	Returns:
-		similarity: Cosine similarity of the two sets of compiled restaurant reviews.
-	"""
-	sim = cosine_similarity(vec1,vec2)
-	return sim[0][0]
+    Arguments:
+        name1: vector of the first city
+        name2: vector of the second city
+    Returns:
+        similarity: Cosine similarity of the two sets of compiled restaurant reviews.
+    """
+    sim = cosine_similarity(vec1,vec2)
+    return sim[0][0]
 
 
 def gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix):
-	restaurant_sims = np.empty([len(unique_ids), len(unique_ids)], dtype=np.float32)
-	for i in range(len(unique_ids)):
-		for j in range(len(unique_ids)):
-			if i != j:
-				restaurant_sims[i][j] = get_sim(restaurant_by_vocab_matrix[i], restaurant_by_vocab_matrix[j])
-			else:
-				restaurant_sims[i][j] = 0
-	return restaurant_sims
+    restaurant_sims = np.empty([len(unique_ids), len(unique_ids)], dtype=np.float32)
+    for i in range(len(unique_ids)):
+        for j in range(len(unique_ids)):
+            if i != j:
+                restaurant_sims[i][j] = get_sim(restaurant_by_vocab_matrix[i], restaurant_by_vocab_matrix[j])
+            else:
+                restaurant_sims[i][j] = 0
+    return restaurant_sims
 
 
 # print("About to generate sim matrix\n")
@@ -162,109 +164,109 @@ def gen_sim_matrix(unique_ids, restaurant_by_vocab_matrix):
 
 
 def find_most_similar(sim_matrix, id1, k=10):
-	"""
-	Find most similar restaurants to the given restaurant id.
+    """
+    Find most similar restaurants to the given restaurant id.
 
-	Accepts: similarity matrix of restauranst, restaurant id.
-	Returns: list of (score, restaurant name) tuples for restaurant with id1 sorted by cosine_similarity score
-	"""
-	rel_index = unique_ids.index(id1)
-	rel_row = sim_matrix[rel_index]
-	max_indices = np.argpartition(rel_row, -k)[-k:]
-	most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
-	print most_similar_scores_and_ids
-	most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
+    Accepts: similarity matrix of restauranst, restaurant id.
+    Returns: list of (score, restaurant name) tuples for restaurant with id1 sorted by cosine_similarity score
+    """
+    rel_index = unique_ids.index(id1)
+    rel_row = sim_matrix[rel_index]
+    max_indices = np.argpartition(rel_row, -k)[-k:]
+    most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
+    print most_similar_scores_and_ids
+    most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
 
-	return most_similar_scores_and_ids
+    return most_similar_scores_and_ids
 
 
 def lookup_business_id(name, city, state):
-		with open('business_name_to_id.json') as data_file:
-			business_name_to_id = json.load(data_file)
-		ids = business_name_to_id[name]
-		rest_id = ids[0]
-		for i in range(len(ids[0])):
-			if ids[1][i] == city and ids[2][i] == state:
-				rest_id = ids[0][i]
-				break
-		#rest_id = ids[0] # For now, just assume the user means the 1st restaurant with that given name. Later, filter based on city to find the exact one
-		return rest_id
+        with open('business_name_to_id.json') as data_file:
+            business_name_to_id = json.load(data_file)
+        ids = business_name_to_id[name]
+        rest_id = ids[0]
+        for i in range(len(ids[0])):
+            if ids[1][i] == city and ids[2][i] == state:
+                rest_id = ids[0][i]
+                break
+        # rest_id = ids[0] # For now, just assume the user means the 1st restaurant with that given name. Later, filter based on city to find the exact one
+        return rest_id
 
 
 def process_query(query, city, state, sim_matrix):
-	query = query.lower() # business_name_to_id.json has all business names in lower case
-	city = city.lower()
-	state = state.lower()
-	bid = lookup_business_id(query, city, state)
-	most_sim = find_most_similar(sim_matrix, bid)
-	return most_sim
+    query = query.lower() # business_name_to_id.json has all business names in lower case
+    city = city.lower()
+    state = state.lower()
+    bid = lookup_business_id(query, city, state)
+    most_sim = find_most_similar(sim_matrix, bid)
+    return most_sim
 
 # query = "mcdonald's"
 # print "10 most similar restaurants to " + query + " are: \n"
 # print process_query(query, sim_matrix)
 
 def get_ordered_cities():
-	cities = defaultdict(int)
-	with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
-		for line in data_file:
-			data = json.loads(line)
-			cities[data['city']] += 1
-	dests = sort_dict_by_val(cities)
-	return dests
+    cities = defaultdict(int)
+    with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
+        for line in data_file:
+            data = json.loads(line)
+            cities[data['city']] += 1
+    dests = sort_dict_by_val(cities)
+    return dests
 
 def gen_business_id_to_name(cutoff, minReviews):
-	"""Return Dict - maps business id to business name."""
-	with open('jsons/restaurant_categories.json') as data_file:
-		valid_categories = set(json.load(data_file))
-	business_id_to_name = defaultdict(str)
-	with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
-		count = 0
-		for line in data_file:
-			badCategory = False
-			data = (json.loads(line))
-			if int(data['review_count']) >= minReviews:
-				if data['categories'] != None:
-					for category in data['categories']:
-						if category not in valid_categories:
-							badCategory = True
-							break
-					if not badCategory:
-						business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
-						count += 1
-						if count > cutoff:
-							break
-	with open('business_id_to_name.json', 'w') as fp:
-		json.dump(business_id_to_name, fp)
+    """Return Dict - maps business id to business name."""
+    with open('jsons/restaurant_categories.json') as data_file:
+        valid_categories = set(json.load(data_file))
+    business_id_to_name = defaultdict(str)
+    with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
+        count = 0
+        for line in data_file:
+            badCategory = False
+            data = (json.loads(line))
+            if int(data['review_count']) >= minReviews:
+                if data['categories'] != None:
+                    for category in data['categories']:
+                        if category not in valid_categories:
+                            badCategory = True
+                            break
+                    if not badCategory:
+                        business_id_to_name[data['business_id']] = (data['name'].lower(), data['city'].lower(), data['state'].lower())
+                        count += 1
+                        if count > cutoff:
+                            break
+    with open('business_id_to_name.json', 'w') as fp:
+        json.dump(business_id_to_name, fp)
 
 
 def gen_business_name_to_id(cutoff, minReviews):
-	"""Return Dict - maps business names to business ids."""
-	with open('jsons/restaurant_categories.json') as data_file:
-		valid_categories = set(json.load(data_file))
-	business_name_to_id = defaultdict(str)
-	with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
-		count = 0
-		for line in data_file:
-			data = (json.loads(line))
-			badCategory = False
-			if int(data['review_count']) >= minReviews:
-				if data['categories'] != None:
-					for category in data['categories']:
-						if category not in valid_categories:
-							badCategory = True
-							break
-					if not badCategory:
-						if data['name'].lower() in business_name_to_id:
-							business_name_to_id[data['name'].lower()][0].append(data['business_id'])
-							business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
-							business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
-						else:
-							business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
-						count += 1
-						if count > cutoff:
-							break
-	with open('business_name_to_id.json', 'w') as fp:
-		json.dump(business_name_to_id, fp)
+    """Return Dict - maps business names to business ids."""
+    with open('jsons/restaurant_categories.json') as data_file:
+        valid_categories = set(json.load(data_file))
+    business_name_to_id = defaultdict(str)
+    with open('yelpdata/yelp_academic_dataset_business.json') as data_file:
+        count = 0
+        for line in data_file:
+            data = (json.loads(line))
+            badCategory = False
+            if int(data['review_count']) >= minReviews:
+                if data['categories'] != None:
+                    for category in data['categories']:
+                        if category not in valid_categories:
+                            badCategory = True
+                            break
+                    if not badCategory:
+                        if data['name'].lower() in business_name_to_id:
+                            business_name_to_id[data['name'].lower()][0].append(data['business_id'])
+                            business_name_to_id[data['name'].lower()][1].append(data['city'].lower())
+                            business_name_to_id[data['name'].lower()][2].append(data['state'].lower())
+                        else:
+                            business_name_to_id[data['name'].lower()] = ([data['business_id']], [data['city'].lower()], [data['state'].lower()])
+                        count += 1
+                        if count > cutoff:
+                            break
+    with open('business_name_to_id.json', 'w') as fp:
+        json.dump(business_name_to_id, fp)
 
 # Have to update this to do it based on dest city
 def map_restaurant_to_top_similar(restaurant_by_vocab_matrix, unique_ids, business_id_to_name, numToFind, feature_names, numTerms):
@@ -418,12 +420,54 @@ def gen_data_file(minReviews=25, cutoff=5000, n_feats=5000, topNToFind=10, numTe
 
 
 def load_precomputed_svds():
-	with open('jsons/kardashian-transcripts.json') as fp:
-		data = json.load(fp)
-	with open('business_id_to_name.json') as fp:
-		business_id_to_name = json.load(fp)
-	return np.array(data["svd_matrix"]), np.array(data['unique_ids']), business_id_to_name
+    with open('jsons/kardashian-transcripts.json') as fp:
+        data = json.load(fp)
+    with open('business_id_to_name.json') as fp:
+        business_id_to_name = json.load(fp)
+    return np.array(data["svd_matrix"]), np.array(data['unique_ids']), business_id_to_name
 
+
+def filter_non_restaurants(minReviews):
+    """Return list of unique business_ids, list of concatenated reviews corresponding to list of business_ids."""
+    new_map = {}
+
+    count = 0
+    filteredBusinesses = 0
+    badCategoryResults = 0
+
+    loadReviewsStart = time.time()
+    with open('jsons/restaurant_categories.json') as data_file:
+        valid_categories = set(json.load(data_file))
+    with open('jsons/reviews.json') as data_file:
+        data = json.load(data_file)
+    loadReviewsEnd = time.time()
+    print ("Loaded reviews in " + str(loadReviewsEnd - loadReviewsStart) + " seconds\n")
+
+    for key in data:
+        badCategory = False         # Keep track of if a non-food category was found
+        if int(data[key]['review_count']) >= minReviews:
+            if data[key]['data']['categories'] is not None:
+                for category in data[key]['data']['categories']:
+                    if category not in valid_categories:
+                        badCategory = True
+                        break
+                if not badCategory:
+                    count += 1
+                    new_map[key] = {}
+                    new_map[key]["reviews"] = data[key]['reviews']
+                    new_map[key]["data"] = data[key]['data']
+                else:
+                    badCategoryResults += 1
+        else:
+            filteredBusinesses += 1
+
+    reviewMapEnd = time.time()
+    print ("Completed pruning in", (reviewMapEnd - loadReviewsEnd),"seconds\n")
+    print("Included " + str(count) + " businesses")
+    print("Filtered out " + str(filteredBusinesses) + " businesses with under " + str(minReviews) + " reviews")
+    print("Filtered out " + str(badCategoryResults) + " businesses that had non-food categories")
+    with open('jsons/pruned_reviews.json', 'w') as fp:
+        json.dump(new_map, fp)
 
 if __name__ == "__main__":
 	# print("before get_reviews_and_ids() call\n")
