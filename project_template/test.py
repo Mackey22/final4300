@@ -127,7 +127,9 @@ def read_file(n):
     business_id_to_name = data['business_id_to_name']
     business_name_to_id = data['business_name_to_id']
     contributing_words = data['contributing_words']
-    autocomplete_info = data['autocomplete_info']
+    # autocomplete_info = data['autocomplete_info']
+    #uncomment after put in kardashina file
+    autocomplete_info= []
 
     return topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words, autocomplete_info
 

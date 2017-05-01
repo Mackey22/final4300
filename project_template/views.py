@@ -16,14 +16,6 @@ from unidecode import unidecode
 # #url for reviews: # https://api.yelp.com/v3/businesses/{id}/reviews
 
 
-def string_cats(cats):
-    res = ["Categories: "]
-    for c in cats:
-        res.append(c['title'])
-        res.append(", ")
-    return "".join(res[:-1])
-
-
 def string_obj(obj):
     res = ["Location:"]
     for c in obj:
@@ -75,7 +67,7 @@ def sort_by_category(output_list, chosen_categories):
     """Return restaurant list sorted by jaccard similarity of categories."""
     rest_scores = []
     for restaurant in output_list:
-        cur_cats = set_cats(restaurant)
+        cur_cats = set(restaurant["categories"])
         all_cats = set(chosen_categories)
         score = len(cur_cats.intersection(all_cats)) / float(len(cur_cats.union(all_cats)))
         rest_scores.append((restaurant, score))
@@ -130,10 +122,14 @@ def index(request):
         origin_state = res[2].strip()
         if request.GET.get('dest'):
             dest = request.GET.get('dest')
-            output_list, best_match, contributing_words = find_similar(search, origin_city, dest)
+            output_list, best_match, contributing_words, autocomplete_info = find_similar(search, origin_city, dest)
+
+            # DELETE AFTER PUT IN KARDASHIAN FILE
+            with open('autocomplete_info.json') as data_file:
+                autocomplete_info = json.load(data_file)
 
             # initialize all topics and categories
-            print ('before')    
+            print ('before')
             print ('after')
 
             output_list = remake_output(output_list, contributing_words)
@@ -143,8 +139,6 @@ def index(request):
             # IF CATEGORIES SELECTED, FILTER BY JACC SIM
             if request.GET.get('categories'):
                 chosen_categories_and_topics = request.GET.getlist('categories')
-                print ("selected categories and topics")
-                print (chosen_categories_and_topics)
                 output_list = sort_by_category(output_list, chosen_categories_and_topics)
 
             # CREATE TABLE OF RESULTS
@@ -161,17 +155,16 @@ def index(request):
         rest_loc = ''
     else:
         rest_loc = string.capwords(best_match) + ', ' + origin_city + ', ' + origin_state
-        print "Total time was", time.time() - start_time, "seconds"
+    print "Total time was", time.time() - start_time, "seconds"
     return render_to_response('project_template/index.html',
-                      {'output': output,
-                       'home_cities': home_cities,
-                       "dest_cities": dest_cities,
-                       'magic_url': request.get_full_path(),
-                       # 'origin': origin,
-                       'dest': dest,
-                       'query': search,
-                       'best_match': rest_loc,
-                       'categories': display_topics_categories,
-                       'topics': ['topic 1','topice 2', 'topic 3', 'topic n'],
-                       'auto_json': autocomplete_info
-                       })
+                        {'output': output,
+                         'home_cities': home_cities,
+                         "dest_cities": dest_cities,
+                         'magic_url': request.get_full_path(),
+                         # 'origin': origin,
+                         'dest': dest,
+                         'query': search,
+                         'best_match': rest_loc,
+                         'categories': display_topics_categories,
+                         'auto_json': autocomplete_info
+                         })
