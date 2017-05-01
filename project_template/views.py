@@ -106,6 +106,8 @@ def remake_output(output_list, contributing_words):
   return output_list
 
 
+
+
 def index(request):
     """Create views here."""
     start_time = time.time()
@@ -134,6 +136,10 @@ def index(request):
         if request.GET.get('dest'):
           dest = request.GET.get('dest')
           output_list, best_match, contributing_words, autocomplete_info = find_similar(search, origin_city, dest)
+          
+          #DELETE AFTER PUT IN KARDASHIAN FILE
+          with open('autocomplete_info.json') as data_file:
+              autocomplete_info = json.load(data_file)
 
           #initialize all topics and categories      
           print ('before')    
@@ -162,17 +168,16 @@ def index(request):
         rest_loc = ''
     else:
       rest_loc = string.capwords(best_match) + ', ' + origin_city + ', ' + origin_state
-      print "Total time was", time.time() - start_time, "seconds"
-      return render_to_response('project_template/index.html',
-                          {'output': output,
-                           'home_cities': home_cities,
-                           "dest_cities": dest_cities,
-                           'magic_url': request.get_full_path(),
-                           # 'origin': origin,
-                           'dest': dest,
-                           'query': search,
-                           'best_match': rest_loc,
-                           'categories': display_topics_categories,
-                           'topics': ['topic 1','topice 2', 'topic 3', 'topic n'],
-                           'auto_json': autocomplete_info
-                           })
+    print "Total time was", time.time() - start_time, "seconds"
+    return render_to_response('project_template/index.html',
+                        {'output': output,
+                         'home_cities': home_cities,
+                         "dest_cities": dest_cities,
+                         'magic_url': request.get_full_path(),
+                         # 'origin': origin,
+                         'dest': dest,
+                         'query': search,
+                         'best_match': rest_loc,
+                         'categories': display_topics_categories,
+                         'auto_json': autocomplete_info
+                         })
