@@ -55,7 +55,7 @@ def return_topic_model(corpus, numpasses, numtopics, doc_term_matrix=None, dicti
         dictionary.save("topics_dt_mtx/dict")
 
     # Running and Training LDA model on the document term matrix.
-    ldamodel = Lda(doc_term_matrix, num_topics=numtopics, id2word=dictionary, passes=numpasses)
+    ldamodel = Lda(doc_term_matrix, num_topics=numtopics, id2word=dictionary, passes=numpasses, alpha=1.5)
     return ldamodel
 
 
@@ -205,8 +205,12 @@ def get_similar_topics(idx1, idx2, topicid_to_label, doc_topic_mtx):
 
     topics = []
     for k1 in sort_dict_by_val(id_to_score1):
-        if k1 in id_to_score2 and k1 in topicid_to_label:
-            topics.append(topicid_to_label[k1])
+        #print k1, id_to_score1[k1]
+        #print id_to_score2
+
+        if k1 in id_to_score2:# and not k1.contains(topicid_to_label):
+            #print("topic matched")
+            topics.append(topicid_to_label[int(k1)])
     return topics
 
   

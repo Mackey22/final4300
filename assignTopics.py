@@ -3,8 +3,8 @@ import numpy as np
 from topic_modeling import get_similar_topics
 
 with open('jsons/kardashian-transcripts.json') as fp:
-    data = json.load(fp)
-    business_id_to_name = data['business_id_to_name']
+	data = json.load(fp)
+	business_id_to_name = data['business_id_to_name']
 	business_name_to_id = data['business_name_to_id']
 	topMatchDict = data['topMatches']
 	unique_ids = data['unique_ids']

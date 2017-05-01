@@ -50,7 +50,7 @@ def api_business_info(business_name, location):
 
 
 # k is number of results to display
-def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity, contributing_words, k=5):
+def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity, contributing_words, k=15):
     """
     Find most similar restaurants to the given restaurant id.
 
