@@ -127,8 +127,9 @@ def read_file(n):
     business_id_to_name = data['business_id_to_name']
     business_name_to_id = data['business_name_to_id']
     contributing_words = data['contributing_words']
+    autocomplete_info = data['autocomplete_info']
 
-    return topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words
+    return topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words, autocomplete_info
 
 
 # responds to request
@@ -138,7 +139,7 @@ def find_similar(query,origin,destination):
     destination = destination.lower()
     query = query.lower() # business_name_to_id.json has all business names in lower case
     read_2 = time.time()
-    topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words = read_file(1)
+    topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words, autocomplete_info = read_file(1)
     print "Loaded file in", time.time() - read_2, "seconds"
     bestMatchKey = ''
     search_timer = time.time()
@@ -157,4 +158,4 @@ def find_similar(query,origin,destination):
         raise ValueError('query is not in business_name_to_id. This means that our unique_ids, autocomplete file, or results are not all aligned.')
 
     print "searched in", time.time() - search_timer, "seconds"
-    return result, bestMatchKey, result2
+    return result, bestMatchKey, result2, autocomplete_info
