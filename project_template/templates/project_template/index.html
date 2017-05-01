@@ -1,10 +1,15 @@
 <html>
     <head>
         <script src="/static/jquery-3.2.1.min.js"></script>
+
         <script src="/static/bootstrap.min.js"></script>
         <link rel="stylesheet" href="/static/bootstrap.min.css">
         <link rel="stylesheet" href="/static/main.css">
         <link href="/static/sticky-footer.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-autocomplete/1.3.5/jquery.easy-autocomplete.js"></script>
+        <link href ="https://cdnjs.cloudflare.com/ajax/libs/easy-autocomplete/1.3.5/jquery.easy-autocomplete.js"
+      rel="stylesheet">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/easy-autocomplete/1.3.5/easy-autocomplete.themes.css">       
     </head>
     
     <body>
@@ -42,24 +47,24 @@
             <br><br>
             
             <div class="form-group">
-                City your favorite restaurant is in:
+                <!-- City your favorite restaurant is in:
                 <select id="home" type="select" name="home" class="form-control">
                 {% for opt in home_cities %}
                     <option value="{{opt}}">{{opt}}</option>
                 {% endfor %}
-                </select>
+                </select> -->
                 <input id="input" type="text" name="search" class="form-control" placeholder="Favorite Restaurant">
-                <br>City you're looking for a restaurant in:
+                <br>
                 <select id="destination" type="select" name="dest" class="form-control">
+                <option selected="selected">Please select a destination</option>
                 {% for opt in dest_cities %}
                     <option value="{{opt}}">{{opt}}</option>
                 {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn btn-info"> Go! </button>
+
 
         <div class="form-inline global-search">
-            <h4>Output</h4><br><br>
 
             <!-- save previous search values -->
             <input type="hidden" id="savedInput" name="savedInput" value="{{query}}">
@@ -67,19 +72,23 @@
             <input type="hidden" id="savedDest" name="savedDest" value="{{dest}}">
             <input type="hidden" id="savedOrigin" name="savedOrigin" value="{{origin}}">
 
-            <h4> You searched for: {{query}}<br> Best match was {{best_match}} </h4>
+            <div id="match_info"><h4>You searched for:</h4> {{query}}<br><h4>Best match was: </h4>{{best_match}} </div><br>
 
             <!-- Display categories -->
-            <legend>Filter further by category</legend>
+            <div id="categories_info"><h4>Filter further by category</h4><br>
             {% for opt in categories %}
                 <input type="checkbox" class = "categories" name="categories" id="categories" value="{{opt}}" /> {{opt}} <br/>
-            {% endfor %}
+            {% endfor %}<br><br>
+            </div>
+
+            <div id="go"><button type="submit" class="btn btn-info"> Go! </button></div><br><br>
+
 
 
             <!-- Display restaurant esults  -->
             {% for jsonObj in output %}
                 {{jsonObj}}
-            {% endfor %}
+            {% endfor %}<br><br>
 
             </form>
 
@@ -92,7 +101,7 @@
                     
                     <!-- Showing the page numbers in Html Page -->
                     <span class="current">
-                    Page _{{ output.number }}_ of _{{ output.paginator.num_pages }}_
+                    Page {{ output.number }} of {{ output.paginator.num_pages }}
                     </span>
                     
                     {% if output.has_next %}
@@ -111,8 +120,35 @@
         document.getElementById('input').value = savedMatch;
         var savedDest = document.getElementById("savedDest").value;
         document.getElementById('destination').value = savedDest;
-        var savedOrigin= document.getElementById("savedOrigin").value;
-        document.getElementById('home').value = savedOrigin
+        
+        // var savedOrigin= document.getElementById("savedOrigin").value;
+        // document.getElementById('home').value = savedOrigin
+
+
+        var data = JSON.parse('{{ auto_json | escapejs }}');
+        var options = {
+            data: data,
+
+            getValue: "name",
+
+            list: {
+                match: {
+                    enabled: true
+                }
+            },
+            theme: "square"
+        };
+
+        $("#input").easyAutocomplete(options);
+
+
+        $(document).ready(function() {
+            if ( $('#savedInput').val() == "" )
+                $("#match_info").hide();
+
+            if ( $("[name='categories']").length == 0)
+                $("#categories_info").hide();
+        });
         </script> 
 
         <footer class="footer">
