@@ -10,6 +10,8 @@ from helpers import sort_dict_by_val
 import requests
 import time
 import grequests
+from unidecode import unidecode
+
 
 
 # YELP API
@@ -99,11 +101,11 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity
 
 def get_ordered_cities():
     t = time.time()
-    data = read(1)["cities"]
-    print "Opened data in ", time.time() - t, "seconds"
+    with open("jsons/ordered_cities.json") as df:
+        data = json.load(df)
     # Deal with Montréal and other accent problems here
     for i in range(len(data)):
-        data[i] = data[i].replace(u'\xe9', 'e')
+        data[i] = unidecode(data[i])
     print "Got ordered cities in", time.time() - t, "seconds"
     return sorted(data[:10]), (["Search in all cities"] + sorted(data))
 
