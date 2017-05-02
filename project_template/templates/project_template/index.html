@@ -26,7 +26,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Yelp 0.9</a>
+          <a class="navbar-brand" href="#">Yelp 0.5</a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
@@ -34,8 +34,8 @@
           <ul class="nav navbar-nav navbar-right">
           <ul class="nav navbar-nav">
             <li><a href="https://yelp-retrieval-1.herokuapp.com/pt/">V1</a></li>
-            <li class="active"><a href="#">V2 <span class="sr-only">(current)</span></a></li>
-            <li><a href="https://yelp-retrieval.herokuapp.com/pt/">Final</a></li>
+            <li><a href="https://yelp-retrieval-2.herokuapp.com/pt/">V2 <span class="sr-only">(current)</span></a></li>
+            <li class='active'><a href="https://yelp-retrieval.herokuapp.com/pt/">Final</a></li>
           </ul>
           </ul>
         </div><!-- /.navbar-collapse -->
@@ -79,7 +79,7 @@
             <input type="hidden" id="savedDest" name="savedDest" value="{{dest}}">
           <!--   <input type="hidden" id="savedOrigin" name="savedOrigin" value="{{origin}}"> -->
 
-            <div class="search" id="match_info"><h4>You searched for:</h4> {{query}}<h4>  Best match was: </h4>{{query}} </div><br>
+            <div class="search" id="match_info"><h4>You searched for:</h4> {{query}}</div><br>
 
             <!-- Display categories -->
             <div class="search" id="categories_info"><h4>Filter further by category</h4><br>
@@ -101,20 +101,26 @@
 
            
             <div class="pagination">
+                <div id="pages">
                 <span class="step-links">
                     {% if output.has_previous %}
                     <a href= "{{magic_url}}&page={{ output.previous_page_number }}">previous</a>
                     {% endif %}
                     
                     <!-- Showing the page numbers in Html Page -->
+                 
                     <span class="current">
                     Page {{ output.number }} of {{ output.paginator.num_pages }}
                     </span>
+
                     
                     {% if output.has_next %}
                     <a href= "{{magic_url}}&page={{ output.next_page_number }}">next</a>
                     {% endif %}
+
+
                 </span>
+                </div>
             </div>
         </div>
 
@@ -156,29 +162,35 @@
 
             if ( $("[name='categories']").length == 0)
                 $("#categories_info").hide();
+
         });
+
+        
 
 
         function verify_exists(query){
             console.log(query);
             for (var i = 0, len = data.length; i < len; i++) {
                 if (data[i].name == query){
-                    return true;
+                    $("#go").attr("disabled", false);
                 }
             }
-            return false;
+            $("#go").attr("disabled", true);
         }
+        $("#input").change(verify_exists($('#input').val()));
 
-        $("#input").change(function() {
-            $("#go").attr("disabled", false);
-            var query = $('#input').val();
-            if (verify_exists(query)){
-                $("#go").attr("disabled", true);
-            }
-            else{
-                alert("Please selected one of the options in the dropdown menu");
-            }
-        });
+
+        // $("#input").change(function() {
+        //     $("#go").attr("disabled", true);
+        //     var query = $('#input').val();
+        //     if (verify_exists(query)){
+        //         $("#go").attr("disabled", false);
+        //     }
+        //     else{
+        //         alert("Please select a restaurant from the suggestings")
+        //         $("#go").attr("disabled", true);
+        //     }
+        // });
 
 
         </script> 

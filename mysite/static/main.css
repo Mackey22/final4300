@@ -13,6 +13,16 @@ body {
 background-image: url("http://www.ezyhealth.com/magazine/wp-content/uploads/2015/03/iStock_000046272610_Large.jpg");
 padding-bottom: 15px;
 background-attachment: fixed;
+background-size: cover;
+}
+#pages{
+position: relative;
+border-radius: 5px;
+background-color: #FFFFFF;
+opacity: .95;
+padding: 10;
+margin-left: auto;
+margin-right: auto;
 }
 /*#banner{
 	border-radius: 5px;
