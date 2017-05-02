@@ -37,29 +37,32 @@ def gen_table(output_list):
     s = []
     for i in range(len(output_list)):
         try:
-            s2 ="<div> hELLO </div>"
-            # obj = output_list[i]
+            # s2 ="<div> hELLO </div>"
+            obj = output_list[i]
             # print "object", obj
-            # s2 = "<div class='display_res'>"
-            # s2 += "<div class='sub'><img class='image-circle' src='" + obj['image_url'] + "' height=100 width=100></img>" + "</div>"
-            # s2 += "<div class='sub'><h4><a href='" + obj['url'] + "'>" + obj['name'] + "</a></h4></div>"
-            # s2 += "<div class='sub'>" + "Price: " + obj['price'] + "</div>"
-            # s2 += "<div class='sub'>" + "Review count: " + str(obj['review_count']) + "</div>"
-            # s2 += "<div class='sub'>" + " Similar aspects: " + string_words(obj['categories']) + "</div>"
-            # s2 += "<div class='sub'>" + str(obj['rating']) + " stars</div>"
-            # s2 += "<div class='sub'>" + string_obj(obj['location']['display_address']) + "</div>"
-            # s2 += "<div class='sub'>" + "Phone: " + obj['display_phone'] + "</div>"
-            # s2 += "</div><br> <br>"
-            # s2 = unidecode(s2)
+            s2 = "<div class='display_res'>"
+            s2 += "<div class='sub'><img class='image-circle' src='" + obj['image_url'] + "' height=100 width=100></img>" + "</div>"
+            s2 += "<div class='sub'><h4><a href='" + obj['url'] + "'>" + obj['name'] + "</a></h4></div>"
+            s2 += "<div class='sub'>" + "Price: " + obj['price'] + "</div>"
+            s2 += "<div class='sub'>" + "Review count: " + str(obj['review_count']) + "</div>"
+            s2 += "<div class='sub'>" + " Similar aspects: " + string_words(obj['categories']) + "</div>"
+            s2 += "<div class='sub'>" + str(obj['rating']) + " stars</div>"
+            s2 += "<div class='sub'>" + string_obj(obj['location']['display_address']) + "</div>"
+            s2 += "<div class='sub'>" + "Phone: " + obj['display_phone'] + "</div>"
+            s2 += "</div><br> <br>"
+            s2 = unidecode(s2)
             s.append(format_html("{}", mark_safe(s2)))
         except:
             pass
+    return s
 
 
 def gen_category_list(output_list):
     """Return list of unique categories."""
     categories = set()
     for rest in output_list:
+        # print ("gen_cat_list")
+        # print (rest)
         cats = rest['categories']
         for c in cats:
             categories.add(c)
@@ -89,19 +92,41 @@ def list_cats(restObj):
 
 
 def remake_output(output_list, contributing_words):
+    output_list2 = []
+    contributing_words2 = []
     for i in range(len(output_list)):
-        restObj = output_list[i]
-        cats = list_cats(restObj)
-        print "cats", cats
-        print "topics", contributing_words[i]
-        for word in contributing_words[i]:
-            cats.append(word)
-        restObj['categories'] = list(set(cats))
-    print (output_list)
+        oldRestObj = output_list[i]
+        print oldRestObj
+        # print (oldRestObj)
+        # print ("oldrestobj ^^^")
+        new = {}
+        #make copy
+        if oldRestObj!=[]:
+            for k,v in oldRestObj.iteritems():
+                if k!= 'categories':
+                    new[k] = v
+                #create new list
+                if k =='categories':
+                    new['categories'] = ['test1','test2']
+                    # list_cats(oldRestObj)
+            # print (new)
+            # print ("new rest obj")
+            output_list2.append(new)
+            contributing_words2.append(['test1','test2','test3'])
+        else:
+            "found empty restObj"
+            # print (len(output_list))
+            # print (len(contributing_words))
+            # contributing_words.pop(i)
+        # # print "cats", cats
+        # # print "topics", contributing_words[i]
+        # for word in contributing_words[i]:
+        #     cats.append(word)
+        # print ("before failing")
+        # print (restObj)
+        # restObj['categories'] = list(set(cats))
+    return output_list2, contributing_words2
 
-    for x in output_list:
-        print x['categories']
-    return output_list
 
 
 def index(request):
@@ -137,23 +162,25 @@ def index(request):
             output_list, best_match, contributing_words, _ = find_similar(search, origin_city, dest)
 
             # initialize all topics and categories
-            print ('before')
-            print ('after')
 
-            output_list = remake_output(output_list, contributing_words)
-            display_topics_categories = gen_category_list(output_list)
-            print ("output is")
+            print ("&&&&&&")
+            print (contributing_words)
+            print (len(contributing_words))
+            output_list3, contributing_words3 = remake_output(output_list, contributing_words)
+            print ("*********")
+            print ("output_list length")
+            print (len(output_list3))
+            print (len(contributing_words3))
             print (output_list)
-
+            display_topics_categories = gen_category_list(output_list3)
             # IF CATEGORIES SELECTED, FILTER BY JACC SIM
             if request.GET.get('categories'):
+                print ("int request categories")
                 chosen_categories_and_topics = request.GET.getlist('categories')
-                output_list = sort_by_category(output_list, chosen_categories_and_topics)
-                print ("output modified:")
-                print (output_list)
+                output_list = sort_by_category(output_list3, chosen_categories_and_topics)
 
             # CREATE TABLE OF RESULTS
-            output_html = gen_table(output_list)
+            output_html = gen_table(output_list3)
             paginator = Paginator(output_html, 10)
             page = request.GET.get('page')
             try:
@@ -168,7 +195,7 @@ def index(request):
         rest_loc = string.capwords(best_match) + ', ' + origin_city + ', ' + origin_state
     print "Total time was", time.time() - start_time, "seconds"
     return render_to_response('project_template/index.html',
-                        {'output': output,
+                        {'output': output_html,
                          "dest_cities": dest_cities,
                          'magic_url': request.get_full_path(),
                          # 'origin': origin,

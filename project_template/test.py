@@ -67,22 +67,20 @@ def find_most_similar(topMatches, unique_ids, business_id_to_name, id1, destCity
     # max_indices = np.argpartition(rel_row, -k)[-k:]
     # most_similar_scores_and_ids = [(rel_row[x], business_id_to_name[unique_ids[x]]) for x in max_indices]
     # most_similar_scores_and_ids = sorted(most_similar_scores_and_ids,key=lambda x:-x[0])
-    most_similar_ids = [business_id_to_name[x] for x in topMatchesRow][:k]
+    most_similar_names = [business_id_to_name[x] for x in topMatchesRow][:k]
     # id -> (name,city,state)
     names = []
     adds = []
-
     res2 = []
     reqs = []
     api_time = time.time()
-    for i in range(len(most_similar_ids)):
-        info = most_similar_ids[i]
+    for i in range(len(most_similar_names)):
+        info = most_similar_names[i]
         name = info[0]
         full_address = info[3]
         names.append(name)
         adds.append(full_address)
         res2.append(contributing_words[topMatchesRow[i]])
-
         request = build_request(name, full_address)
         reqs.append(request)
     print "Building requests takes", time.time() - api_time, "seconds"
