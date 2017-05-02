@@ -64,10 +64,27 @@ def read_json(filepath):
 # count_businesses()
 # count_reviews()
 
-business_map = make_business_id_map()
-# pprint(business_map)
-combine_reviews(business_map)
+# business_map = make_business_id_map()
+# # pprint(business_map)
+# combine_reviews(business_map)
 
+with open("jsons/kardashian-transcripts.json") as df:
+    data = json.load(df)["business_id_to_name"]
+
+autocomplete_info = []
+
+keys = data.keys()
+for i in range(len(data)):
+    key = keys[i]
+    val = data[key]
+    name = ", ".join([val[0], val[1], val[2]])
+    d = {"name": name}
+    autocomplete_info.append(d)
+
+print len(autocomplete_info)
+
+with open("autocomplete_info.json", "w") as df:
+    json.dump(autocomplete_info, df)
 
 # import json
 # from collections import defaultdict

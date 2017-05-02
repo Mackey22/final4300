@@ -9,6 +9,9 @@ print len(unique_ids)
 business_id_to_name = data['business_id_to_name']
 business_name_to_id = data['business_name_to_id']
 
+print len(business_id_to_name)
+print len(business_name_to_id)
+
 new_business_id_to_name = {}
 new_business_name_to_id = {}
 

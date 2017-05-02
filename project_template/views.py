@@ -124,7 +124,7 @@ def index(request):
     origin_city = ''
     origin_state = ''
     dest = 'Please select a destination'
-    search = ''
+    search2 = ''
     best_match = ''
     display_topics_categories = []
 
