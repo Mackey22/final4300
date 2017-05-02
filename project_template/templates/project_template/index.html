@@ -58,7 +58,9 @@
                     <option value="{{opt}}">{{opt}}</option>
                 {% endfor %}
                 </select> -->
+                <!-- mODIFIED -->
                 <input id="input" type="text" name="search" class="form-control" placeholder="Favorite Restaurant">
+<!--                 <input id="input" type="text" name="query_submit" class="form-control" placeholder="Favorite Restaurant"> -->
                 <br>
                 <select id="destination" type="select" name="dest" class="form-control">
                 <option selected="selected">Please select a destination</option>
@@ -75,9 +77,9 @@
             <input type="hidden" id="savedInput" name="savedInput" value="{{query}}">
              <input type="hidden" id="savedMatch" name="savedMatch" value="{{best_match}}">
             <input type="hidden" id="savedDest" name="savedDest" value="{{dest}}">
-            <input type="hidden" id="savedOrigin" name="savedOrigin" value="{{origin}}">
+          <!--   <input type="hidden" id="savedOrigin" name="savedOrigin" value="{{origin}}"> -->
 
-            <div class="search" id="match_info"><h4>You searched for:</h4> {{query}}<h4>  Best match was: </h4>{{best_match}} </div><br>
+            <div class="search" id="match_info"><h4>You searched for:</h4> {{query}}<h4>  Best match was: </h4>{{query}} </div><br>
 
             <!-- Display categories -->
             <div class="search" id="categories_info"><h4>Filter further by category</h4><br>
@@ -119,10 +121,10 @@
         <script type="text/javascript"> 
         //Display saved results from previous search
         
-        // var savedInput = document.getElementById("savedInput").value;
-        // document.getElementById('input').value = savedInput
-        var savedMatch = document.getElementById("savedMatch").value;
-        document.getElementById('input').value = savedMatch;
+        var savedInput = document.getElementById("savedInput").value;
+        document.getElementById('input').value = savedInput
+        // var savedMatch = document.getElementById("savedMatch").value;
+        // document.getElementById('input').value = savedMatch;
         var savedDest = document.getElementById("savedDest").value;
         document.getElementById('destination').value = savedDest;
         

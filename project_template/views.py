@@ -31,8 +31,6 @@ def string_words(l):
 
 
 def gen_table(output_list):
-    print ("length output_list")
-    print (len(output_list))
     """Return list of strings each formatted as html table"""
     s = []
     for i in range(len(output_list)):
@@ -93,39 +91,26 @@ def list_cats(restObj):
 
 def remake_output(output_list, contributing_words):
     output_list2 = []
-    contributing_words2 = []
     for i in range(len(output_list)):
         oldRestObj = output_list[i]
-        print oldRestObj
-        # print (oldRestObj)
-        # print ("oldrestobj ^^^")
-        new = {}
-        #make copy
+        newObj = {}
         if oldRestObj!=[]:
             for k,v in oldRestObj.iteritems():
                 if k!= 'categories':
-                    new[k] = v
+                    newObj[k] = v
                 #create new list
                 if k =='categories':
-                    new['categories'] = ['test1','test2']
-                    # list_cats(oldRestObj)
-            # print (new)
-            # print ("new rest obj")
-            output_list2.append(new)
-            contributing_words2.append(['test1','test2','test3'])
-        else:
-            "found empty restObj"
-            # print (len(output_list))
-            # print (len(contributing_words))
-            # contributing_words.pop(i)
-        # # print "cats", cats
-        # # print "topics", contributing_words[i]
-        # for word in contributing_words[i]:
-        #     cats.append(word)
-        # print ("before failing")
-        # print (restObj)
-        # restObj['categories'] = list(set(cats))
-    return output_list2, contributing_words2
+                    try:
+                        # old_cats = oldRestObj[k]['categories']
+                        newObj['categories'] = list(set(list_cats(oldRestObj) + contributing_words[i]))
+                    except:
+                        newObj['categories'] = []
+            output_list2.append(newObj)
+        #     contributing_words2.append(list(set(list_cats(oldRestObj) + contributing_words[i])))
+        # else:
+            pass
+
+    return output_list2
 
 
 
@@ -150,10 +135,15 @@ def index(request):
     # GET ALL INPUT VALUES
     if request.GET.get('search'):
         search = request.GET.get('search')
+        # # print 
+        # print ("search&&&&")
+        # print (search)
+        # print ("end search")
         # if request.GET.get('home'):
         # origin = request.GET.get('home')
         res = search.split(',')
-        print res
+        search2 = res[0] + ',' + res[1] + ',' + res[2]
+        # print res
         search = res[0].strip()
         origin_city = res[1].strip()
         origin_state = res[2].strip()
@@ -162,22 +152,17 @@ def index(request):
             output_list, best_match, contributing_words, _ = find_similar(search, origin_city, dest)
 
             # initialize all topics and categories
-
-            print ("&&&&&&")
-            print (contributing_words)
-            print (len(contributing_words))
-            output_list3, contributing_words3 = remake_output(output_list, contributing_words)
-            print ("*********")
-            print ("output_list length")
-            print (len(output_list3))
-            print (len(contributing_words3))
-            print (output_list)
+            output_list3 = remake_output(output_list, contributing_words)
             display_topics_categories = gen_category_list(output_list3)
+           
             # IF CATEGORIES SELECTED, FILTER BY JACC SIM
+            print ("@@@@@@@@@@@@@@@@@@\n\n\n\n\n\n")
+            print (request.GET)
+            print ("@@@@@@@@@@@@@@@@@\n\n\n\n\n\n\n")
             if request.GET.get('categories'):
                 print ("int request categories")
                 chosen_categories_and_topics = request.GET.getlist('categories')
-                output_list = sort_by_category(output_list3, chosen_categories_and_topics)
+                output_list3 = sort_by_category(output_list3, chosen_categories_and_topics)
 
             # CREATE TABLE OF RESULTS
             output_html = gen_table(output_list3)
@@ -195,12 +180,12 @@ def index(request):
         rest_loc = string.capwords(best_match) + ', ' + origin_city + ', ' + origin_state
     print "Total time was", time.time() - start_time, "seconds"
     return render_to_response('project_template/index.html',
-                        {'output': output_html,
+                        {'output': output,
                          "dest_cities": dest_cities,
                          'magic_url': request.get_full_path(),
                          # 'origin': origin,
                          'dest': dest,
-                         'query': search,
+                         'query': search2,
                          'best_match': rest_loc,
                          'categories': display_topics_categories,
                          'auto_json': autocomplete_info
