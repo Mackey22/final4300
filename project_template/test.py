@@ -118,6 +118,9 @@ def read(n):
 
 
 def read_file(n):
+    with open('autocomplete_info.json') as data_file:
+        autocomplete_info = json.load(data_file)
+
     path = Docs.objects.get(id=n).address
     file = open(path)
     data = json.load(file)
@@ -128,8 +131,7 @@ def read_file(n):
     business_name_to_id = data['business_name_to_id']
     contributing_words = data['contributing_words']
     # autocomplete_info = data['autocomplete_info']
-    #uncomment after put in kardashina file
-    autocomplete_info= []
+    # uncomment after put in kardashina file
 
     return topMatches, unique_ids, business_id_to_name, business_name_to_id, contributing_words, autocomplete_info
 
@@ -147,13 +149,14 @@ def find_similar(query,origin,destination):
     search_timer = time.time()
     if query in business_name_to_id:
         print query
-        bid = business_name_to_id[query][0]
+        bid = business_name_to_id[query][0][0]
         print bid
         lists = business_name_to_id[query]
         for i in range(len(lists[0])):
             if lists[1][i] == origin:
                 bid = lists[0][i]
                 break
+        print bid
         print "generating ish in", time.time() - search_timer, "seconds"
         result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
     else:
