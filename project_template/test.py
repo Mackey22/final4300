@@ -160,7 +160,24 @@ def find_similar(query,origin,destination):
         print "generating ish in", time.time() - search_timer, "seconds"
         result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
     else:
-        raise ValueError('query is not in business_name_to_id. This means that our unique_ids, autocomplete file, or results are not all aligned.')
+    	result = []
+    	result2 = []
+    	minDist = 999999
+        # If query isn't in our business list, find match with lowest edit distance. Change later to choose correct one from list of values (same named restaurants, different cities)
+        bestMatch = query
+        for key, value in business_name_to_id.iteritems():
+            dist = Levenshtein.distance(query, key)
+            if dist < minDist:
+                minDist = dist
+                bestMatch = key
+        lists = business_name_to_id[bestMatch]
+        bid = lists[0][0]
+        for i in range(len(lists[0])):
+        	if lists[1][i] == origin:
+        		bid = lists[0][i]
+        		break
+        result, result2 = find_most_similar(topMatches, unique_ids, business_id_to_name, bid, destination, contributing_words[bid])
+        #raise ValueError('query is not in business_name_to_id. This means that our unique_ids, autocomplete file, or results are not all aligned.')
 
     print "searched in", time.time() - search_timer, "seconds"
     return result, bestMatchKey, result2, autocomplete_info
